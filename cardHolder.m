@@ -118,19 +118,21 @@ classdef cardHolder < handle
             if strcmp(cH.deck_orientation,'vertical')
                 sel_point = sel_y;
                 ref_point = cH.y;
-                first_card_range = cH.card_height;
+                %first_card_range = cH.card_height;
             elseif strcmp(cH.deck_orientation,'horizontal')
                 sel_point = sel_x;
                 ref_point = cH.x;
-                first_card_range = cH.card_width;
+                %first_card_range = cH.card_width;
             end
             % Check which card is selected
             relative_sel_point = abs(sel_point-ref_point);
-            if relative_sel_point<=first_card_range
-                sel_num = 1;
-            else
-                sel_num = 1+ceil((relative_sel_point - first_card_range)/cH.offset);
-            end
+            %if relative_sel_point<=first_card_range
+            %    sel_num = 1;
+            %else
+            sel_num = min(cH.get_Number_Of_Cards(),...
+                ceil(relative_sel_point/cH.offset));
+            %end
+            %sel_num = cH.get_Number_Of_Cards()- sel_num;
             % Check if the selected card is hidden
             if sel_num>cH.get_Number_Of_Cards()-cH.hidden_start_index
                 sel_num = -1;
