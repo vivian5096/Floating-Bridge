@@ -10,7 +10,7 @@ win_size = scrsz(3:4)*0.8;
 background_colour=[0 0.2 0];
 text_colour=[1 0.713725 0.756863];
 role_text_colour=[0.12549 0.698039 0.666667];
-font_size=0.6;
+font_size=0.5;
 see_all_deck=1; % 0 to see all 1 to play normally
 
 % Construct the window
@@ -43,7 +43,7 @@ pl(4) = Player('Vibot1',4,[]);
 %draw textboxes to display player name, score,role and message
 [all_texts,choice_button,bidsuit_button,...
     bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,...
-    partner_button,call_button]=draw_Uicontrols(all_cards,pl,playfield_size,background_colour,...
+    partner_button,call_button]=draw_Uicontrols(all_cards,pl,midfield_size,background_colour,...
     text_colour,role_text_colour,font_size);
 
 draw_playfield(player_hand_deck,player_played_card)
@@ -172,8 +172,8 @@ close all
         border_offset = 10;
         playfield_width = round(card_width*15+2*border_offset);
         playfield_size = round([playfield_width playfield_width].*win_ratio);
-        midfield_size = [border_offset+card_width border_offset+card_height...
-                        playfield_size-[border_offset+card_width border_offset+card_height]*2];
+        midfield_offset = [card_width card_height]+ border_offset+card_gap;
+        midfield_size = [midfield_offset playfield_size-midfield_offset*2];
         
         % Compute the position and dimensions
         start_x = border_offset;
@@ -190,30 +190,33 @@ close all
                 mod(i,2),-1,0,see_all_deck,0);
         
             player_played_card(i)=cardHolder(...
-                midfield_size(1) + (midfield_size(3) - card_width)/2* (1-sin(pi/2*(i-1))) + card_gap*sin(pi/2*(i-1)),...
+                midfield_size(1) + (midfield_size(3) - card_width)/2* (1-sin(pi/2*(i-1))),...
                 midfield_size(2) + midfield_size(4)/2 * (1-cos(pi/2*(i-1)))...
                 + card_height/2 * (1+cos(pi/2*(i-1))) + card_gap*cos(pi/2*(i-1)),...
                 [],card_width,card_height,card_hoffset,'horizontal',-1,0,0,0);
+
         end
     end
 %function to draw the uicontrols
     function [all_texts,choice_button,bidsuit_button,bidnum_button,...
             display_bidnum,display_bidsuit,bid_button,pass_button,partner_button,call_button]=draw_Uicontrols(...
-        all_cards,pl,playfield_size,background_colour,text_colour,role_text_colour,font_size)
+        all_cards,pl,midfield_size,background_colour,text_colour,role_text_colour,font_size)
     
         card_size = size(all_cards(1).get_Card_Image('front'));
         card_width = card_size(2);
         card_height = card_size(1);
-        card_voffset = (playfield_size(2)-2*10-3*card_height)/12;
+        card_voffset = (midfield_size(2)-2*10-3*card_height)/12;
         
-        player_text(1)=uicontrol('style','text','string',pl(1).type,...
-            'position',[card_width*5,55+card_height,card_width*1.2,25]);
-        player_text(2)=uicontrol('style','text','string',pl(2).type,...
-            'position',[card_width+15,card_height*2+card_voffset*2-5,card_width*1.2,25]);
-        player_text(3)=uicontrol('style','text','string',pl(3).type,...
-            'position',[card_width*5,card_height*2+10*card_voffset,card_width*1.2,25]);
-        player_text(4)=uicontrol('style','text','string',pl(4).type,...
-            'position',[card_width*12+10,card_height*2+card_voffset*2-5,card_width*1.2,25]);
+        deltas = [card_width midfield_size(2)/6];
+        actual_field = [midfield_size(1:2)  midfield_size(3:4)-deltas];
+        for i = 1:4
+            text_pos = [actual_field(1) + actual_field(3)/2*(1-sin((i-1)*pi/2)) + ((card_width+deltas(1))+20)*mod(i,2)/2, ...
+                        actual_field(2) + actual_field(4)/2*(1-cos((i-1)*pi/2)) + ((card_height+deltas(2))+20)*mod(i-1,2)/2,...
+                        deltas];
+            player_text(i)= uicontrol('style','text','string',pl(i).type,...
+            'position',text_pos);
+        end
+
         set(player_text,'FontUnits','normalized','BackgroundColor',background_colour,'ForegroundColor',text_colour,...
             'FontSize',font_size);
         
