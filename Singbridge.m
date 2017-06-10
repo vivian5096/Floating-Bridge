@@ -18,7 +18,7 @@ win = figure('ToolBar','none','Name','Floating Bridge',...
     'NumberTitle','off','MenuBar','none',...
     'Resize','off','Visible','off','Color',background_colour,...
     'Position',[scrsz(3:4)-win_size*1.05 win_size]);
-win.UserData=struct('game_delay',0.5,'bidnum',1,'bidsuit','');
+win.UserData=struct('game_delay',0.5,'bidnum','','bidsuit','');
 win.UserData.background_colour=background_colour;
 
 % Initialise all cards
@@ -39,31 +39,30 @@ pl(2) = Player('Vibot1',2,[]);
 pl(3) = Player('randomAI',3,[]);
 pl(4) = Player('Vibot1',4,[]);
 
+%bidsuit_button,bidnum_button,bid_button,pass_button,partner_button,call_button
 %draw textboxes to display player name, score,role and message
-[all_texts,choice_button,bidsuit_button,...
-    bidnum_button,display_bid,bid_button,pass_button,...
-    partner_button,call_button]=draw_Uicontrols(all_cards,pl,midfield_size,background_colour,...
+[all_texts,bidding_buttons,choice_button,display_bid]=draw_Uicontrols(all_cards,pl,midfield_size,background_colour,...
     text_colour,role_text_colour,font_size);
-
 draw_playfield(player_hand_deck,player_played_card)
 set(win,'Visible','on')
 % line(disp_axes,[0 midfield_size(3) midfield_size(3) 0 0]+midfield_size(1),...
 %                  [0 0 midfield_size(4) midfield_size(4) 0]+midfield_size(2),...
 %                  'PickablePart','none','Color',[1 1 1],'LineWidth',1)
+
+%initialise players, table scores & set the state of game to 0
+tb=Table(pl,0,[0 0 0 0],win,bidding_buttons,all_texts);
 %loop game
 continue_game=1;
 while continue_game==1
     seed=rng;
     try
+        tb.state = 0; tb.scores = [0 0 0 0];
         %reset graphics
-        set(all_texts{4},'fontsize',0.3);
-        set(all_texts{4},'string','');
-        set(all_texts{2},'string','');
-        set(all_texts{3},'string','');
-        
-        %initialise players, table scores & set the state of game to 0
-        tb=Table(pl,0,[0 0 0 0],win);
-        
+        for n = 2:4
+            set(all_texts{n},'string','');
+        end
+        set(all_texts{n},'fontsize',0.3);
+
         % state 0: shuffling, dealing out cards & request for reshuffle
         no_times_dealt=0; request_reshuffle=[1;1;1;1];
         while sum(request_reshuffle)>0
@@ -78,10 +77,10 @@ while continue_game==1
                 determine_Point(tb.players(n));                             % all players determine points
             end
             for n=1:4
-                request_reshuffle(n)=check_Points(tb.players(n),...         % ask fore reshuffle requests
+                request_reshuffle(n)=check_Points(tb.players(n),...         % ask for reshuffle requests
                     all_texts{4},choice_button,win);   
                 set(all_texts{4},'string','');                              % reset graphics
-                set(choice_button(1),'visible','off');set(choice_button(2),'visible','off');
+                set(choice_button,'visible','off');
             end            
             if  sum(request_reshuffle)>0
                 for n=1:4
@@ -90,7 +89,8 @@ while continue_game==1
             end
             no_times_dealt=1+no_times_dealt;
             if no_times_dealt>3                                             % can only accept reshuffle request 3 times
-                set(all_texts{4},'string','Reshuffled 3 times. No longer accepting reshuffle request!'); pause(game_delay);
+                set(all_texts{4},'string','Reshuffled 3 times. No longer accepting reshuffle request!'); 
+                pause(game_delay);
                 break
             end
         end
@@ -99,10 +99,8 @@ while continue_game==1
         % State 1: Bidding Process
         tb.state=1;
         %first bidder is assigned randomly
-        bidding_Process(tb,suit_name,all_texts{2},all_texts{4},bidsuit_button,...
-            bidnum_button,display_bid,bid_button,pass_button,all_texts{1});
-        set(bidsuit_button,'visible','off');set(bidnum_button,'visible','off');
-        set(bid_button,'visible','off');set(pass_button,'visible','off');
+        bidding_Process(tb,suit_name,display_bid);
+        
         set(display_bid,'visible','off');
         msg1=sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
         set(all_texts{4},'string',msg1);
@@ -111,11 +109,8 @@ while continue_game==1
         
         % State 2: Choose partner
         tb.state=2;
-        call_Partner(tb,all_cards,all_texts{4},...
-            partner_button,call_button,bidsuit_button,display_bid);
-        set(bidsuit_button(1:4),'visible','off');
+        call_Partner(tb,all_cards,display_bid);
         set(display_bid,'visible','off');
-        set(partner_button,'visible','off');set(call_button,'visible','off');
         set(display_bid,'string','');
         msg2=strcat('Partner card is ',num_name(mod(tb.partner_card.value,100)-1),...
             ' ',suit_name(floor(tb.partner_card.value/100)));
@@ -136,8 +131,8 @@ while continue_game==1
         no_of_trick=1; %game counter
         game(no_of_trick).leader=first_Leader(tb);  % identify first leader       
         while no_of_trick<=13
-            game(no_of_trick+1).leader=trick(tb,game(no_of_trick), all_texts{4},all_texts{3},...
-                player_hand_deck,disp_axes,player_played_card,msg2,all_texts{1});
+            game(no_of_trick+1).leader=trick(tb,game(no_of_trick),...
+                player_hand_deck,disp_axes,player_played_card,msg2);
             tb.scores(game(no_of_trick+1).leader)=tb.scores(game(no_of_trick+1).leader)+1;
             no_of_trick=no_of_trick+1;
             for n=1:4
@@ -200,14 +195,12 @@ close all
    
     end
 %function to draw the uicontrols
-    function [all_texts,choice_button,bidsuit_button,bidnum_button,...
-            display_bid,bid_button,pass_button,partner_button,call_button]=draw_Uicontrols(...
+    function [all_texts,bidding_buttons,choice_button,display_bid]=draw_Uicontrols(...
         all_cards,pl,midfield_size,background_colour,text_colour,role_text_colour,font_size)
     
         card_size = size(all_cards(1).get_Card_Image('front'));
         card_width = card_size(2);
         card_height = card_size(1);
-        card_voffset = (midfield_size(2)-2*10-3*card_height)/12;
         
         deltas = [card_width midfield_size(2)/6];
         actual_field = [midfield_size(1:2)  midfield_size(3:4)-deltas];
@@ -281,6 +274,9 @@ close all
         choice_button(2)=uicontrol('style','pushbutton','string','No',...
             'position',[midfield_size(1)+midfield_size(3)/2+card_width/2+3,midfield_size(2)+card_height/2,button_w,button_h],...
             'visible','off','callback',{@choice,0});
+        
+        bidding_buttons = {bidsuit_button,bidnum_button,...
+            bid_button,pass_button,partner_button,call_button};
     end
 
 % Draw the play field
@@ -356,5 +352,4 @@ close all
         win.UserData.Yy=mpos(1,2);
         uiresume(win);
     end
-
 end

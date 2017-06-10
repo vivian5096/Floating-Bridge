@@ -78,8 +78,14 @@ classdef Player < handle
             end
         end
         
-        function bid=place_Bid(player,current_bid,pl_bid,win,bidsuit_button,...
-                bidnum_button,display_bid,bid_button,pass_button)
+        function bid=place_Bid(player,pl_bid,display_bid,table)
+            current_bid = table.bid;
+            bidsuit_button = table.bidding_buttons{1};
+            bidnum_button = table.bidding_buttons{2};
+            bid_button = table.bidding_buttons{3};
+            pass_button = table.bidding_buttons{4};
+            win = table.win_handle;
+            
             switch player.type
                 case 'randomAI'
                     bid=AI.getAction(player,1,current_bid,0.3);
@@ -100,23 +106,32 @@ classdef Player < handle
             player.role='Declarer';
         end
         
-        function card_selected=choose_Partner(player,all_cards,table,message_text,partner_button,...
-                call_button,bidsuit_button,display_bid)
+        function card_selected=choose_Partner(player,all_cards,table,display_bid)
+            partner_button = table.bidding_buttons{5};
+            call_button = table.bidding_buttons{6};
+            bidsuit_button = table.bidding_buttons{1};
+            message_text = table.all_texts{4};
+            
             switch player.type
                 case 'randomAI'
                     card_selected=AI.getAction(player,2,table.trump_suit,all_cards);
                 case 'Human'
-                    set(bidsuit_button(1:4),'visible','on');
+                    set(bidsuit_button,'visible','on');
                     set(display_bid,'string','');
                     set(display_bid,'visible','on');
                     set(partner_button,'visible','on');set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
                     card_selected=Human.partner(player,all_cards,table.win_handle,message_text);
+                                
+                    set(bidsuit_button,'visible','off');
+                    set(partner_button,'visible','off');
+                    set(call_button,'visible','off');
                 case 'Vibot1'
                     card_selected=Vibot1.getAction(player,2,table.trump_suit,all_cards);
                 otherwise
                     disp('Player type not valid')
             end
+
         end
         
         function identify_Role(player,partner_card,declarer)

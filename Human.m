@@ -22,7 +22,7 @@ classdef Human
             valid =0;
             while valid ==0
                 uiwait(win);
-                card_value_selected=win.UserData.callpartner;%input('Choose your partner');
+                card_value_selected=win.UserData.callpartner;
                 if sum([pl.hand.value]==card_value_selected)>0
                    valid=0;
                    set(message_text,'string','Dont choose yourself!');
