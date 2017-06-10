@@ -38,7 +38,18 @@ classdef cardHolder < handle
             cH.x = x;
             cH.y = y;
             
-            cH.deck_orientation = deck_orientation;
+            % Check if a string is input,
+            if isstring(deck_orientation)
+                cH.deck_orientation = deck_orientation;
+            else
+                %Check for number input
+                if deck_orientation == 1
+                    cH.deck_orientation = 'horizontal';
+                elseif deck_orientation == 0
+                    cH.deck_orientation = 'vertical';
+                end
+            end
+            
             if start_display_index<1
                 start_display_index = -1;
             end
