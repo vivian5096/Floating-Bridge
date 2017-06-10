@@ -111,7 +111,7 @@ classdef Player < handle
                     set(display_bidnum,'visible','on'); set(display_bidsuit,'visible','on');
                     set(partner_button,'visible','on');set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
-                    card_selected=Human.partner(player,all_cards,tb.win_handle,message_text);
+                    card_selected=Human.partner(player,all_cards,table.win_handle,message_text);
                 case 'Vibot1'
                     card_selected=Vibot1.getAction(player,2,table.trump_suit,all_cards);
                 otherwise
