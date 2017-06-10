@@ -78,21 +78,14 @@ classdef Player < handle
             end
         end
         
-        function bid=place_Bid(player,pl_bid,display_bid,table)
+        function bid=place_Bid(player,pl_bid,table)
             current_bid = table.bid;
-            bidsuit_button = table.bidding_buttons{1};
-            bidnum_button = table.bidding_buttons{2};
-            bid_button = table.bidding_buttons{3};
-            pass_button = table.bidding_buttons{4};
             win = table.win_handle;
             
             switch player.type
                 case 'randomAI'
                     bid=AI.getAction(player,1,current_bid,0.3);
                 case 'Human'
-                    set(bidsuit_button,'visible','on');set(bidnum_button,'visible','on');
-                    set(bid_button,'visible','on');set(pass_button,'visible','on');
-                    set(display_bid,'visible','on');
                     bid=Human.bet(current_bid,pl_bid,win);
                 case 'Vibot1'
                     bid=Vibot1.getAction(player,1,current_bid,0.3);

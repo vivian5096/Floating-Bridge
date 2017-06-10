@@ -44,13 +44,19 @@ classdef Table <handle
             message_text = tb.all_texts{4};
             player_text = tb.all_texts{1};
             win = tb.win_handle;
-            
+            set(message_text,'string','The game is starting soon...');
+            pause(5)
+            set(display_bid,'visible','on');
+            for n = 1:4
+                set(tb.bidding_buttons{n},'visible','on')
+            end
             set(message_text,'string','Start bidding');
             pause(win.UserData.game_delay);
             first_bidder=randi(4);
             counter=first_bidder; no_of_pass=0; tb.bid=0; pl_bids=zeros(7,4);
             %options=cumsum(ones(5,7))+ cumsum(ones(7,5)*10)';
             %options=reshape(options,[1,size(options,1)*size(options,2)]);
+
             while no_of_pass<3
                 i=mod(counter,4);
                 if i==0
@@ -58,7 +64,7 @@ classdef Table <handle
                 end
                 j=ceil(counter/4);
                 set(player_text(i),'BackgroundColor',[0,0,0.25])
-                pl_bids(j,i)=tb.players(i).place_Bid(pl_bids,display_bid,tb);
+                pl_bids(j,i)=tb.players(i).place_Bid(pl_bids,tb);
                 if pl_bids(j,i)==0
                     bid_name='pass';
                 else
@@ -163,7 +169,7 @@ classdef Table <handle
                     trump_played=[trump_played game.cards_played(a(i))];
                 end
                 next_leader=find([game.cards_played.value]==max([trump_played.value]));
-                if tb.trump_broken~=1 && game.leading_suit ~= tb.trump_suit
+                if tb.trump_broken~=1
                     tb.trump_broken=1;
                     set(message_text,'string','Trump broken!');
                     pause(1)

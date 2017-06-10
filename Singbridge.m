@@ -10,7 +10,7 @@ win_size = scrsz(3:4)*0.8;
 background_colour=[0 0.2 0];
 text_colour=[1 0.713725 0.756863];
 role_text_colour=[0.12549 0.698039 0.666667];
-font_size=0.5;
+font_size=0.6;
 see_all_deck=1; % 0 to see all 1 to play normally
 
 % Construct the window
@@ -156,7 +156,6 @@ while continue_game==1
     set(choice_button(1),'visible','on');set(choice_button(2),'visible','on');
     uiwait(win);
     continue_game=win.UserData.decision;
-    %continue_game=input('Continue game? <1>Yes <else>No');
 end
 close all
 %% GUI functions
@@ -238,21 +237,23 @@ close all
         for i=1:7
             bidnum_button(i)=uicontrol('style','pushbutton','string',num2str(i),...
                 'position',[midfield_size(1)+3+card_width+2+button_w*(i-1) ypos button_w button_h],...
-                'visible','off','callback',{@display_Bidnum,i});
+                'callback',{@display_Bidnum,i});
         end
+        set(bidnum_button,'visible','off')
         button_w = (midfield_size(3)-card_width*3-2)/2/5;
         for i=1:5
             bidsuit_button(i)=uicontrol('style','pushbutton','string',suit_name(i),...
                 'position',[midfield_size(1)+3+(midfield_size(3)+card_width+2)/2+button_w*(i-1) ypos button_w button_h],...
-                'visible','off','callback',{@display_Bidsuit,suit_name{i}});
+                'callback',{@display_Bidsuit,suit_name{i}});
         end
+        set(bidsuit_button,'visible','off')
         button_w = (midfield_size(3)-card_width*3-2)/2/13;
         for i=1:13
             partner_button(i)=uicontrol('style','pushbutton','string',num_name(i),...
                 'position',[midfield_size(1)+card_width+button_w*(i-1) ypos button_w button_h],...
-                'visible','off','callback',{@display_Partner_Cardnum,i});
+                'callback',{@display_Partner_Cardnum,i});
         end
-        
+        set(partner_button,'visible','off')
         button_w = card_width;
         call_button=uicontrol('style','pushbutton','string','CALL',...
             'position',[midfield_size(1)+midfield_size(3)*3/4 midfield_size(2) button_w button_h],...

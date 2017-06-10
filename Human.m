@@ -41,13 +41,13 @@ classdef Human
                 uiwait(win);
                 if player_hand_deck.check_Deck_Collision(win.UserData.Xx,win.UserData.Yy,'full')
                     card_ind = check_selection(player_hand_deck,win.UserData.Xx,win.UserData.Yy);
-                    card_selected=pl.hand(card_ind).value;%input('Choose one of the card');
+                    card_selected=pl.hand(card_ind).value;
                     suit = floor(card_selected/100);
                     if any([pl.hand.value]==card_selected)%>0
                         if suit==leading_suit
                             valid=1;
                         elseif leading_suit==0
-                            if suit ==tb.trump_suit && tb.trump_broken==0
+                            if suit ==tb.trump_suit && tb.trump_broken==0 && any(floor([pl.hand.value]/100) ~= tb.trump_suit)
                                 valid=0; disp('Trump not broken');
                             else
                                 valid=1;
