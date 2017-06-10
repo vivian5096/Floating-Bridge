@@ -39,7 +39,7 @@ classdef cardHolder < handle
             cH.y = y;
             
             % Check if a string is input,
-            if isstring(deck_orientation)
+            if ischar(deck_orientation)
                 cH.deck_orientation = deck_orientation;
             else
                 %Check for number input
