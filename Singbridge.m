@@ -27,7 +27,7 @@ suit_name={'Clubs','Diamonds','Hearts','Spades','No Trump'};
 num_name={'2','3','4','5','6','7','8','9','10','J','Q','K','A'};
 
 % Prepare playfield and drawing axes
-[player_hand_deck,player_played_card,playfield_size] = prepare_playfield(all_cards,win_ratio,see_all_deck);
+[player_hand_deck,player_played_card,playfield_size,midfield_size] = prepare_playfield(all_cards,win_ratio,see_all_deck);
 disp_axes = axes('Parent',win,'Position',[0 0 1 1]);
 set(disp_axes,'Xlim',[0 playfield_size(1)],'Ylim',[0 playfield_size(2)],...
     'XLimMode','manual','YLimMode','manual','Visible','off','NextPlot','add');
@@ -164,7 +164,7 @@ end
 close all
 %% GUI functions
 % Prepare the playing field dimension with the card holders
-    function [player_hand_deck,player_played_card,playfield_size] = prepare_playfield(cards,win_ratio,see_all_deck)
+    function [player_hand_deck,player_played_card,playfield_size,midfield_size] = prepare_playfield(cards,win_ratio,see_all_deck)
         card_size = size(cards(1).get_Card_Image('front'));
         card_width = card_size(2);
         card_height = card_size(1);
@@ -172,6 +172,8 @@ close all
         border_offset = 10;
         playfield_width = round(card_width*15+2*border_offset);
         playfield_size = round([playfield_width playfield_width].*win_ratio);
+        midfield_size = [border_offset+card_width border_offset+card_height...
+                        playfield_size-[border_offset+card_width border_offset+card_height]*2];
         
         % Compute the position and dimensions
         start_x = border_offset;
@@ -188,16 +190,14 @@ close all
                 mod(i,2),-1,0,see_all_deck,0);
         
             player_played_card(i)=cardHolder(...
-                start_x + card_width + (card_width+card_hoffset*5)*mod(i,2)...
-                +card_hoffset*12*(i==4) + card_gap*mod(i-1,2)*power(-1,i/2-1),...
-                start_y+card_height*2+card_voffset*7*(i~=1)...
-                +card_voffset*5*(i==3)+card_gap+card_gap*mod(i,2)*power(-1,round(i/2)),...
+                midfield_size(1) + (midfield_size(3) - card_width)/2* (1-sin(pi/2*(i-1))) + card_gap*sin(pi/2*(i-1)),...
+                midfield_size(2) + midfield_size(4)/2 * (1-cos(pi/2*(i-1)))...
+                + card_height/2 * (1+cos(pi/2*(i-1))) + card_gap*cos(pi/2*(i-1)),...
                 [],card_width,card_height,card_hoffset,'horizontal',-1,0,0,0);
         end
     end
 %function to draw the uicontrols
-    function [all_texts,...
-            choice_button,bidsuit_button,bidnum_button,...
+    function [all_texts,choice_button,bidsuit_button,bidnum_button,...
             display_bidnum,display_bidsuit,bid_button,pass_button,partner_button,call_button]=draw_Uicontrols(...
         all_cards,pl,playfield_size,background_colour,text_colour,role_text_colour,font_size)
     
