@@ -79,14 +79,14 @@ classdef Player < handle
         end
         
         function bid=place_Bid(player,current_bid,pl_bid,win,bidsuit_button,...
-                bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button)
+                bidnum_button,display_bid,bid_button,pass_button)
             switch player.type
                 case 'randomAI'
                     bid=AI.getAction(player,1,current_bid,0.3);
                 case 'Human'
                     set(bidsuit_button,'visible','on');set(bidnum_button,'visible','on');
                     set(bid_button,'visible','on');set(pass_button,'visible','on');
-                    set(display_bidnum,'visible','on');set(display_bidsuit,'visible','on');
+                    set(display_bid,'visible','on');
                     bid=Human.bet(current_bid,pl_bid,win);
                 case 'Vibot1'
                     bid=Vibot1.getAction(player,1,current_bid,0.3);
@@ -101,14 +101,14 @@ classdef Player < handle
         end
         
         function card_selected=choose_Partner(player,all_cards,table,message_text,partner_button,...
-                call_button,bidsuit_button,display_bidnum,display_bidsuit)
+                call_button,bidsuit_button,display_bid)
             switch player.type
                 case 'randomAI'
                     card_selected=AI.getAction(player,2,table.trump_suit,all_cards);
                 case 'Human'
                     set(bidsuit_button(1:4),'visible','on');
-                    set(display_bidnum,'string',''); set(display_bidsuit,'string','');
-                    set(display_bidnum,'visible','on'); set(display_bidsuit,'visible','on');
+                    set(display_bid,'string','');
+                    set(display_bid,'visible','on');
                     set(partner_button,'visible','on');set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
                     card_selected=Human.partner(player,all_cards,table.win_handle,message_text);

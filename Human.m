@@ -1,6 +1,5 @@
 classdef Human
     methods (Static)
-        
         function bid=bet(current_bid,pl_bids,win)
             valid =0;
             while valid ==0

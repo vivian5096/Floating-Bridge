@@ -35,7 +35,7 @@ classdef Table <handle
         end
         
         function bidding_Process(tb,suit_name,score_text,message_text,bidsuit_button,...
-                bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,player_text)
+                bidnum_button,display_bid,bid_button,pass_button,player_text)
             
             win = tb.win_handle;
             set(message_text,'string','Start bidding');
@@ -52,7 +52,7 @@ classdef Table <handle
                 j=ceil(counter/4);
                 set(player_text(i),'BackgroundColor',[0,0,0.25])
                 pl_bids(j,i)=tb.players(i).place_Bid(tb.bid,pl_bids,win,...
-                    bidsuit_button,bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button);
+                    bidsuit_button,bidnum_button,display_bid,bid_button,pass_button);
                 if pl_bids(j,i)==0
                     bid_name='pass';
                 else
@@ -80,13 +80,15 @@ classdef Table <handle
             tb.trump_suit=j(2);
             tb.declarer_win_set=6+j(1);
             tb.defender_win_set=14-tb.declarer_win_set;
+            tb.win_handle.UserData.bidnum = '';
+            tb.win_handle.UserData.bidsuit = '';
         end
         
         function call_Partner(tb,all_cards,message_text,...
-            partner_button,call_button,bidsuit_button,display_bidnum,display_bidsuit)
+            partner_button,call_button,bidsuit_button,display_bid)
             
             tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb,message_text,...
-            partner_button,call_button,bidsuit_button,display_bidnum,display_bidsuit);
+            partner_button,call_button,bidsuit_button,display_bid);
         end
         
         function leader=first_Leader(tb)

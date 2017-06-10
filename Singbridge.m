@@ -18,7 +18,7 @@ win = figure('ToolBar','none','Name','Floating Bridge',...
     'NumberTitle','off','MenuBar','none',...
     'Resize','off','Visible','off','Color',background_colour,...
     'Position',[scrsz(3:4)-win_size*1.05 win_size]);
-win.UserData=struct('game_delay',0.5);
+win.UserData=struct('game_delay',0.5,'bidnum',1,'bidsuit','');
 win.UserData.background_colour=background_colour;
 
 % Initialise all cards
@@ -39,10 +39,9 @@ pl(2) = Player('Vibot1',2,[]);
 pl(3) = Player('randomAI',3,[]);
 pl(4) = Player('Vibot1',4,[]);
 
-%player_text,score_text,role_text,message_text
 %draw textboxes to display player name, score,role and message
 [all_texts,choice_button,bidsuit_button,...
-    bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,...
+    bidnum_button,display_bid,bid_button,pass_button,...
     partner_button,call_button]=draw_Uicontrols(all_cards,pl,midfield_size,background_colour,...
     text_colour,role_text_colour,font_size);
 
@@ -99,10 +98,10 @@ while continue_game==1
         tb.state=1;
         %first bidder is assigned randomly
         bidding_Process(tb,suit_name,all_texts{2},all_texts{4},bidsuit_button,...
-            bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,all_texts{1});
+            bidnum_button,display_bid,bid_button,pass_button,all_texts{1});
         set(bidsuit_button,'visible','off');set(bidnum_button,'visible','off');
         set(bid_button,'visible','off');set(pass_button,'visible','off');
-        set(display_bidnum,'visible','off');set(display_bidsuit,'visible','off');
+        set(display_bid,'visible','off');
         msg1=sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
         set(all_texts{4},'string',msg1);
         set(all_texts{3}(tb.declarer),'string','Declarer');
@@ -111,11 +110,11 @@ while continue_game==1
         % State 2: Choose partner
         tb.state=2;
         call_Partner(tb,all_cards,all_texts{4},...
-            partner_button,call_button,bidsuit_button,display_bidnum,display_bidsuit);
+            partner_button,call_button,bidsuit_button,display_bid);
         set(bidsuit_button(1:4),'visible','off');
-        set(display_bidnum,'visible','off'); set(display_bidsuit,'visible','off');
+        set(display_bid,'visible','off');
         set(partner_button,'visible','off');set(call_button,'visible','off');
-        set(display_bidnum,'string',''); set(display_bidsuit,'string','');
+        set(display_bid,'string','');
         msg2=strcat('Partner card is ',num_name(mod(tb.partner_card.value,100)-1),...
             ' ',suit_name(floor(tb.partner_card.value/100)));
         msg2=[msg1,msg2];
@@ -173,7 +172,7 @@ close all
         playfield_width = round(card_width*15+2*border_offset);
         playfield_size = round([playfield_width playfield_width].*win_ratio);
         midfield_offset = [card_width card_height]+ border_offset+card_gap;
-        midfield_size = [midfield_offset playfield_size-midfield_offset*2];
+        midfield_size = [midfield_offset playfield_size-midfield_offset*2]-[0 0 1 1];
         
         % Compute the position and dimensions
         start_x = border_offset;
@@ -199,7 +198,7 @@ close all
     end
 %function to draw the uicontrols
     function [all_texts,choice_button,bidsuit_button,bidnum_button,...
-            display_bidnum,display_bidsuit,bid_button,pass_button,partner_button,call_button]=draw_Uicontrols(...
+            display_bid,bid_button,pass_button,partner_button,call_button]=draw_Uicontrols(...
         all_cards,pl,midfield_size,background_colour,text_colour,role_text_colour,font_size)
     
         card_size = size(all_cards(1).get_Card_Image('front'));
@@ -222,10 +221,8 @@ close all
         end
         set(player_text,'FontUnits','normalized','BackgroundColor',...
             background_colour,'ForegroundColor',text_colour,'FontSize',font_size);
-        
         set(score_text,'FontUnits','normalized','BackgroundColor',...
             background_colour,'ForegroundColor',text_colour,'FontSize',font_size);
-        
         set(role_text,'FontUnits','normalized','BackgroundColor',...
             background_colour,'ForegroundColor',text_colour,...
             'FontSize',font_size,'string','');
@@ -238,46 +235,45 @@ close all
        
         all_texts = {player_text,score_text,role_text,message_text};
         
-        for j=1:7
-            bidnum_button(j)=uicontrol('style','pushbutton','string',num2str(j),...
-                'position',[card_width*2.5+card_width*0.5*(j-1),card_height*2+card_voffset*2-35,card_width*0.4,30],...
-                'visible','off','callback',{@display_Bidnum,j});
+        button_w = (midfield_size(3)-card_width*3-2)/2/7;
+        button_h = button_w/2;
+        ypos =  midfield_size(2)+card_height+2;
+        for i=1:7
+            bidnum_button(i)=uicontrol('style','pushbutton','string',num2str(i),...
+                'position',[midfield_size(1)+card_width+2+button_w*(i-1) ypos button_w button_h],...
+                'visible','off','callback',{@display_Bidnum,i});
         end
-        
+        button_w = (midfield_size(3)-card_width*3-2)/2/5;
         for i=1:5
             bidsuit_button(i)=uicontrol('style','pushbutton','string',suit_name(i),...
-                'position',[card_width*5.5*1.5+card_width*0.8*(i-1),card_height*2+card_voffset*2-35,card_width*0.7,30],...
+                'position',[midfield_size(1)+(midfield_size(3)+card_width+2)/2+button_w*(i-1) ypos button_w button_h],...
                 'visible','off','callback',{@display_Bidsuit,suit_name(i)});
         end
-        
-        for k=1:13
-            partner_button(k)=uicontrol('style','pushbutton','string',num_name(k),...
-                'position',[card_width*2.5+card_width*0.5*(mod(k-1,7)),...
-                card_height*2+card_voffset*(2-floor((k-1)/7)*1.2)-35,card_width*0.4,30],...
-                'visible','off','callback',{@display_Partner_Cardnum,k});
+        button_w = (midfield_size(3)-card_width*3-2)/2/13;
+        for i=1:13
+            partner_button(i)=uicontrol('style','pushbutton','string',num_name(i),...
+                'position',[midfield_size(1)+card_width+button_w*(i-1) ypos button_w button_h],...
+                'visible','off','callback',{@display_Partner_Cardnum,i});
+                        %[card_width*2.5+card_width*0.5*(mod(k-1,7)),...
+             %   card_height*2+card_voffset*(2-floor((k-1)/7)*1.2)-35,card_width*0.4,30],...
         end
         
+        button_w = card_width;
         call_button=uicontrol('style','pushbutton','string','CALL',...
-            'position',[card_width*(5.5*1.5+0.8),card_height*1.5,card_width*0.7,30],...
+            'position',[midfield_size(1)+midfield_size(3)*3/4 midfield_size(2) button_w button_h],...
             'visible','off','callback',@partner_Called);
-        
+        bid_button=uicontrol('style','pushbutton','string','BID',...
+            'position',[midfield_size(1)+midfield_size(3)*3/4 midfield_size(2) button_w button_h],...
+            'visible','off','callback',@bid_Entered);
         pass_button=uicontrol('style','pushbutton','string','PASS',...
-            'position',[card_width*(5.5*1.5+1.6),card_height*1.5,card_width*0.7,30],...
+            'position',[midfield_size(1)+midfield_size(3)*3/4+button_w midfield_size(2) button_w button_h],...
             'visible','off','callback',@bid_Passed);
         
-        bid_button=uicontrol('style','pushbutton','string','BID',...
-            'position',[card_width*(5.5*1.5+0.8),card_height*1.5,card_width*0.7,30],...
-            'visible','off','callback',@bid_Entered);
-        
-        display_bidnum=uicontrol('style','text','string','',...
-            'position',[card_width*4*1.6,card_height*2+card_voffset*2-35,card_width*0.4,30],...
+        display_bid=uicontrol('style','text','string','',...
+            'position',[midfield_size(1:2)+[(midfield_size(3)-card_width)/2 card_height] card_width*1.2 card_height/2],...
             'visible','off','FontUnits','normalized','BackgroundColor',[0 0 0],'ForegroundColor',[1 1 1],...
             'FontSize',font_size);
-        
-        display_bidsuit=uicontrol('style','text','string','',...
-            'position',[card_width*(4*1.6+0.4),card_height*2+card_voffset*2-35,card_width,30],...
-            'visible','off','FontUnits','normalized','BackgroundColor',[0 0 0],'ForegroundColor',[1 1 1],...
-            'FontSize',font_size);
+
         
         choice_button(1)=uicontrol('style','pushbutton','string','Yes',...
             'position',[card_width*5,card_height*2+card_voffset*2-5,card_width*0.7,30],...
@@ -309,11 +305,13 @@ close all
     end
 % Callback function of bidnum buttons
     function display_Bidnum(~,~,val)
-        set(display_bidnum,'string',num2str(val))
+        win.UserData.bidnum = num2str(val);
+        set(display_bid,'string',strcat(num2str(val),win.UserData.bidsuit))
     end
 % Callback function of bidsuit buttons
     function display_Bidsuit(~,~,val)
-        set(display_bidsuit,'string',val)
+        win.UserData.bidsuit = val;
+        set(display_bid,'string',strcat(win.UserData.bidnum,val))
     end
 %Callback function of pass button
     function bid_Passed(~,~)
@@ -322,23 +320,24 @@ close all
     end
 % Callback function of bid button
     function bid_Entered(~,~)
-        bidnum=get(display_bidnum,'string');
-        bidsuit=get(display_bidsuit,'string');
+        bidnum= str2double(win.UserData.bidnum);
+        bidsuit= win.UserData.bidsuit;
         if isempty(bidnum) || isempty(bidsuit)
             return
         end
         b=find(strcmp(suit_name,bidsuit));
-        win.UserData.humanbidresult=str2double(bidnum)*10+b;
+        win.UserData.humanbidresult= bidnum*10+b;
         uiresume(win);
     end
 %callback function of partner buttons
     function display_Partner_Cardnum(~,~,k)
-        set(display_bidnum,'string',num_name(k));
+        win.UserData.bidnum = num_name(k);
+        set(display_bid,'string',strcat(num_name(k),num2str(win.UserData.bidsuit)));
     end
 %callback function of call button
     function partner_Called(~,~)
-        partnernum=get(display_bidnum,'string');
-        partnersuit=get(display_bidsuit,'string');
+        partnernum= win.UserData.bidnum;
+        partnersuit= win.UserData.bidsuit;
         if isempty(partnernum) || isempty(partnersuit)
             return
         end
