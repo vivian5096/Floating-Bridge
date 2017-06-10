@@ -47,7 +47,9 @@ pl(4) = Player('Vibot1',4,[]);
 
 draw_playfield(player_hand_deck,player_played_card)
 set(win,'Visible','on')
-
+% line(disp_axes,[0 midfield_size(3) midfield_size(3) 0 0]+midfield_size(1),...
+%                  [0 0 midfield_size(4) midfield_size(4) 0]+midfield_size(2),...
+%                  'PickablePart','none','Color',[1 1 1],'LineWidth',1)
 %loop game
 continue_game=1;
 while continue_game==1
@@ -172,7 +174,7 @@ close all
         playfield_width = round(card_width*15+2*border_offset);
         playfield_size = round([playfield_width playfield_width].*win_ratio);
         midfield_offset = [card_width card_height]+ border_offset+card_gap;
-        midfield_size = [midfield_offset playfield_size-midfield_offset*2]-[0 0 1 1];
+        midfield_size = [midfield_offset playfield_size-midfield_offset*2];
         
         % Compute the position and dimensions
         start_x = border_offset;
@@ -191,10 +193,11 @@ close all
             player_played_card(i)=cardHolder(...
                 midfield_size(1) + (midfield_size(3) - card_width)/2* (1-sin(pi/2*(i-1))),...
                 midfield_size(2) + midfield_size(4)/2 * (1-cos(pi/2*(i-1)))...
-                + card_height/2 * (1+cos(pi/2*(i-1))) + card_gap*cos(pi/2*(i-1)),...
+                + card_height/2 * (1+cos(pi/2*(i-1))),...
                 [],card_width,card_height,card_hoffset,'horizontal',-1,0,0,0);
 
         end
+   
     end
 %function to draw the uicontrols
     function [all_texts,choice_button,bidsuit_button,bidnum_button,...
@@ -225,28 +228,28 @@ close all
             background_colour,'ForegroundColor',text_colour,'FontSize',font_size);
         set(role_text,'FontUnits','normalized','BackgroundColor',...
             background_colour,'ForegroundColor',text_colour,...
-            'FontSize',font_size,'string','');
+            'FontSize',font_size);
         
-        message_size = midfield_size(3:4)/5;
-        message_text=uicontrol('style','text','string','',...
-            'position',[midfield_size(1:2)+ (midfield_size(3:4)-message_size)/2 message_size],...
+        message_size = [midfield_size(3)-2*card_width midfield_size(4)-2*card_height];
+        message_text=uicontrol('style','text',...
+            'position',[midfield_size(1:2)+[3 3]+(midfield_size(3:4)-message_size)/2  message_size-[3 3]],...
             'FontUnits','normalized','BackgroundColor',background_colour,'ForegroundColor',[1 1 1],...
-            'FontSize',0.3);
+            'FontSize',0.5);
        
         all_texts = {player_text,score_text,role_text,message_text};
         
-        button_w = (midfield_size(3)-card_width*3-2)/2/7;
+        button_w = (midfield_size(3)+3-card_width*3-2)/2/7;
         button_h = button_w/2;
         ypos =  midfield_size(2)+card_height+2;
         for i=1:7
             bidnum_button(i)=uicontrol('style','pushbutton','string',num2str(i),...
-                'position',[midfield_size(1)+card_width+2+button_w*(i-1) ypos button_w button_h],...
+                'position',[midfield_size(1)+3+card_width+2+button_w*(i-1) ypos button_w button_h],...
                 'visible','off','callback',{@display_Bidnum,i});
         end
         button_w = (midfield_size(3)-card_width*3-2)/2/5;
         for i=1:5
             bidsuit_button(i)=uicontrol('style','pushbutton','string',suit_name(i),...
-                'position',[midfield_size(1)+(midfield_size(3)+card_width+2)/2+button_w*(i-1) ypos button_w button_h],...
+                'position',[midfield_size(1)+3+(midfield_size(3)+card_width+2)/2+button_w*(i-1) ypos button_w button_h],...
                 'visible','off','callback',{@display_Bidsuit,suit_name(i)});
         end
         button_w = (midfield_size(3)-card_width*3-2)/2/13;
@@ -254,8 +257,6 @@ close all
             partner_button(i)=uicontrol('style','pushbutton','string',num_name(i),...
                 'position',[midfield_size(1)+card_width+button_w*(i-1) ypos button_w button_h],...
                 'visible','off','callback',{@display_Partner_Cardnum,i});
-                        %[card_width*2.5+card_width*0.5*(mod(k-1,7)),...
-             %   card_height*2+card_voffset*(2-floor((k-1)/7)*1.2)-35,card_width*0.4,30],...
         end
         
         button_w = card_width;
@@ -270,16 +271,15 @@ close all
             'visible','off','callback',@bid_Passed);
         
         display_bid=uicontrol('style','text','string','',...
-            'position',[midfield_size(1:2)+[(midfield_size(3)-card_width)/2 card_height] card_width*1.2 card_height/2],...
+            'position',[midfield_size(1:2)+[(midfield_size(3)-card_width*2)/2 card_height+button_h] card_width*2 card_height/2],...
             'visible','off','FontUnits','normalized','BackgroundColor',[0 0 0],'ForegroundColor',[1 1 1],...
             'FontSize',font_size);
-
         
         choice_button(1)=uicontrol('style','pushbutton','string','Yes',...
-            'position',[card_width*5,card_height*2+card_voffset*2-5,card_width*0.7,30],...
+            'position',[midfield_size(1)+midfield_size(3)/2-card_width/2-button_w,midfield_size(2)+card_height/2,button_w,button_h],...
             'visible','off','callback',{@choice,1});
         choice_button(2)=uicontrol('style','pushbutton','string','No',...
-            'position',[card_width*8,card_height*2+card_voffset*2-5,card_width*0.7,30],...
+            'position',[midfield_size(1)+midfield_size(3)/2+card_width/2+3,midfield_size(2)+card_height/2,button_w,button_h],...
             'visible','off','callback',{@choice,0});
     end
 
@@ -287,7 +287,6 @@ close all
     function draw_playfield(player_hand_deck,player_played_card)
         cla(disp_axes);     % Clear the play field axes, not that it is needed since it is only called during initialisation
         for i = 1:length(player_hand_deck)
-            %player_hand_deck(i).render_deck_outline(disp_axes);
             player_hand_deck(i).update_Deck_Graphics(disp_axes);
         end
         
@@ -313,7 +312,7 @@ close all
         win.UserData.bidsuit = val;
         set(display_bid,'string',strcat(win.UserData.bidnum,val))
     end
-%Callback function of pass button
+% Callback function of pass button
     function bid_Passed(~,~)
         win.UserData.humanbidresult=0;
         uiresume(win);
@@ -329,12 +328,12 @@ close all
         win.UserData.humanbidresult= bidnum*10+b;
         uiresume(win);
     end
-%callback function of partner buttons
+% Callback function of partner buttons
     function display_Partner_Cardnum(~,~,k)
         win.UserData.bidnum = num_name(k);
-        set(display_bid,'string',strcat(num_name(k),num2str(win.UserData.bidsuit)));
+        set(display_bid,'string',strcat(num_name(k),win.UserData.bidsuit));
     end
-%callback function of call button
+% Callback function of call button
     function partner_Called(~,~)
         partnernum= win.UserData.bidnum;
         partnersuit= win.UserData.bidsuit;
@@ -346,7 +345,7 @@ close all
         win.UserData.callpartner=b*100+a;
         uiresume(win);
     end
-%button down callback function of window
+% Button down callback function of window
     function check_clicked_deck(~,~)
         % Only allow left clicks, subject to changes
         if ~strcmp(get(win,'selectiontype'),{'normal','open'})
