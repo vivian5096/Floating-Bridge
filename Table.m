@@ -7,19 +7,20 @@ classdef Table <handle
         players     
         bid         % current bid        
         trump_broken
-        % constant
+        % Constant
         trump_suit  % doubles
         partner_card
         declarer_win_set
         defender_win_set
-        % players' role
+        % Players' role
         declarer
-        declarer_partner %to be updated when partner card is revealed
+        declarer_partner    % To be updated when partner card is revealed
         defenders
-        win_handle
+        win_handle          % The handle of the window which the game is on
     end
     
     methods
+        % Initialisation
         function tb=Table(players,state,scores,win)
             tb.players=players;
             tb.state=state;
