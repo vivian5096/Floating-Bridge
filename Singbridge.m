@@ -56,7 +56,7 @@ continue_game=1;
 while continue_game==1
     seed=rng;
     try
-        tb.state = 0; tb.scores = [0 0 0 0];
+        reset_Table(tb);
         %reset graphics
         for n = 2:4
             set(all_texts{n},'string','');
@@ -102,20 +102,21 @@ while continue_game==1
         bidding_Process(tb,suit_name,display_bid);
         
         set(display_bid,'visible','off');
-        msg1=sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
+        msg1 =sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
         set(all_texts{4},'string',msg1);
         set(all_texts{3}(tb.declarer),'string','Declarer');
         non_declarer=find([1 2 3 4]~=tb.declarer);
-        
+        pause(1)
         % State 2: Choose partner
         tb.state=2;
         call_Partner(tb,all_cards,display_bid);
         set(display_bid,'visible','off');
         set(display_bid,'string','');
-        msg2=strcat('Partner card is ',num_name(mod(tb.partner_card.value,100)-1),...
-            ' ',suit_name(floor(tb.partner_card.value/100)));
-        msg2=[msg1,msg2];
-        set(all_texts{4},'string',msg2);
+        msg2 =['Partner card is ',num_name{mod(tb.partner_card.value,100)-1},...
+            ' ',suit_name{floor(tb.partner_card.value/100)}];
+        msg3 = {msg1,msg2};
+        set(all_texts{4},'string',msg3);
+        pause(1)
         % non-bidder identify themselves
         for n=1:3
             identify_Role(tb.players(non_declarer(n)),tb.partner_card,tb.declarer);
@@ -132,7 +133,7 @@ while continue_game==1
         game(no_of_trick).leader=first_Leader(tb);  % identify first leader       
         while no_of_trick<=13
             game(no_of_trick+1).leader=trick(tb,game(no_of_trick),...
-                player_hand_deck,disp_axes,player_played_card,msg2);
+                player_hand_deck,disp_axes,player_played_card,msg3);
             tb.scores(game(no_of_trick+1).leader)=tb.scores(game(no_of_trick+1).leader)+1;
             no_of_trick=no_of_trick+1;
             for n=1:4
@@ -243,7 +244,7 @@ close all
         for i=1:5
             bidsuit_button(i)=uicontrol('style','pushbutton','string',suit_name(i),...
                 'position',[midfield_size(1)+3+(midfield_size(3)+card_width+2)/2+button_w*(i-1) ypos button_w button_h],...
-                'visible','off','callback',{@display_Bidsuit,suit_name(i)});
+                'visible','off','callback',{@display_Bidsuit,suit_name{i}});
         end
         button_w = (midfield_size(3)-card_width*3-2)/2/13;
         for i=1:13
@@ -301,12 +302,12 @@ close all
 % Callback function of bidnum buttons
     function display_Bidnum(~,~,val)
         win.UserData.bidnum = num2str(val);
-        set(display_bid,'string',strcat(num2str(val),win.UserData.bidsuit))
+        set(display_bid,'string',[num2str(val),' ',win.UserData.bidsuit])
     end
 % Callback function of bidsuit buttons
     function display_Bidsuit(~,~,val)
         win.UserData.bidsuit = val;
-        set(display_bid,'string',strcat(win.UserData.bidnum,val))
+        set(display_bid,'string',[win.UserData.bidnum,' ',val])
     end
 % Callback function of pass button
     function bid_Passed(~,~)
@@ -326,8 +327,8 @@ close all
     end
 % Callback function of partner buttons
     function display_Partner_Cardnum(~,~,k)
-        win.UserData.bidnum = num_name(k);
-        set(display_bid,'string',strcat(num_name(k),win.UserData.bidsuit));
+        win.UserData.bidnum = num_name{k};
+        set(display_bid,'string',[num_name{k},' ',win.UserData.bidsuit]);
     end
 % Callback function of call button
     function partner_Called(~,~)

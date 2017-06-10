@@ -116,7 +116,7 @@ classdef Player < handle
                 case 'randomAI'
                     card_selected=AI.getAction(player,2,table.trump_suit,all_cards);
                 case 'Human'
-                    set(bidsuit_button,'visible','on');
+                    set(bidsuit_button(1:4),'visible','on');
                     set(display_bid,'string','');
                     set(display_bid,'visible','on');
                     set(partner_button,'visible','on');set(call_button,'visible','on');

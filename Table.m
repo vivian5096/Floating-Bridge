@@ -66,7 +66,7 @@ classdef Table <handle
                     if suitind==0
                         suitind=5;
                     end
-                    bid_name=strcat(num2str(floor(pl_bids(j,i)/10)),suit_name(suitind));
+                    bid_name=[num2str(floor(pl_bids(j,i)/10)),' ',suit_name{suitind}];
                 end
                 set(score_text(i),'string',bid_name); pause(win.UserData.game_delay);
                 if pl_bids(j,i)==0
@@ -118,6 +118,7 @@ classdef Table <handle
             role_text = tb.all_texts{3};
             player_text = tb.all_texts{1};
             win = tb.win_handle;
+            
             counter=game.leader; game.turn=1;
             set(message_text,'string',msg2);
             while counter<(game.leader+4)
@@ -165,6 +166,7 @@ classdef Table <handle
                 if tb.trump_broken~=1 && game.leading_suit ~= tb.trump_suit
                     tb.trump_broken=1;
                     set(message_text,'string','Trump broken!');
+                    pause(1)
                 end
             else
                 b=find(suit_played == game.leading_suit);
@@ -190,6 +192,11 @@ classdef Table <handle
                 winning_team='Defender';
                 no_set_won_above_bid=defender_team_score-tb.defender_win_set;
             end
+        end
+        function reset_Table(tb)
+            tb.state = 0; 
+            tb.scores = [0 0 0 0];
+            tb.trump_broken = 0;
         end
     end
     
