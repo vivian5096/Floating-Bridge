@@ -100,7 +100,7 @@ classdef Player < handle
             player.role='Declarer';
         end
         
-        function card_selected=choose_Partner(player,all_cards,table,win,message_text,partner_button,...
+        function card_selected=choose_Partner(player,all_cards,table,message_text,partner_button,...
                 call_button,bidsuit_button,display_bidnum,display_bidsuit)
             switch player.type
                 case 'randomAI'
@@ -111,7 +111,7 @@ classdef Player < handle
                     set(display_bidnum,'visible','on'); set(display_bidsuit,'visible','on');
                     set(partner_button,'visible','on');set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
-                    card_selected=Human.partner(player,all_cards,win,message_text);
+                    card_selected=Human.partner(player,all_cards,tb.win_handle,message_text);
                 case 'Vibot1'
                     card_selected=Vibot1.getAction(player,2,table.trump_suit,all_cards);
                 otherwise
@@ -129,12 +129,12 @@ classdef Player < handle
             end
         end
         
-        function [card_played,selected_card_ind]=play_Card(player, round,tb,win,player_hand_deck)
+        function [card_played,selected_card_ind]=play_Card(player, round,tb,player_hand_deck)
             switch player.type
                 case 'randomAI'
                     card_played=AI.getAction(player, 3,round.leading_suit,tb);
                 case 'Human'
-                    card_played=Human.select_Card(player, round.leading_suit,tb,win,player_hand_deck);
+                    card_played=Human.select_Card(player, round.leading_suit,tb,player_hand_deck);
                 case 'Vibot1'
                     card_played=Vibot1.getAction(player,3,round.leading_suit,tb);
                 otherwise

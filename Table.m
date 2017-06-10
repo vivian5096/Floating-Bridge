@@ -16,10 +16,11 @@ classdef Table <handle
         declarer
         declarer_partner %to be updated when partner card is revealed
         defenders
+        win_handle
     end
     
     methods
-        function tb=Table(players,state,scores)
+        function tb=Table(players,state,scores,win)
             tb.players=players;
             tb.state=state;
             tb.bid=0;
@@ -29,11 +30,15 @@ classdef Table <handle
             tb.declarer_win_set=0;
             tb.defender_win_set=0;
             tb.trump_broken=0;
+            tb.win_handle = win;
         end
         
-        function bidding_Process(tb,suit_name,score_text,message_text,win,bidsuit_button,...
+        function bidding_Process(tb,suit_name,score_text,message_text,bidsuit_button,...
                 bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,player_text)
-            set(message_text,'string','Start bidding');pause(win.UserData.game_delay);
+            
+            win = tb.win_handle;
+            set(message_text,'string','Start bidding');
+            pause(win.UserData.game_delay);
             first_bidder=randi(4);
             counter=first_bidder; no_of_pass=0; tb.bid=0; pl_bids=zeros(7,4);
             %options=cumsum(ones(5,7))+ cumsum(ones(7,5)*10)';
@@ -76,10 +81,10 @@ classdef Table <handle
             tb.defender_win_set=14-tb.declarer_win_set;
         end
         
-        function call_Partner(tb,all_cards,win,message_text,...
+        function call_Partner(tb,all_cards,message_text,...
             partner_button,call_button,bidsuit_button,display_bidnum,display_bidsuit)
             
-            tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb,win,message_text,...
+            tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb,message_text,...
             partner_button,call_button,bidsuit_button,display_bidnum,display_bidsuit);
         end
         
@@ -98,7 +103,8 @@ classdef Table <handle
         
         
         function next_leader=trick(tb,game,message_text,role_text,player_hand_deck,...
-                disp_axes,player_played_card,win,msg2,player_text)
+                disp_axes,player_played_card,msg2,player_text)
+            win = tb.win_handle;
             counter=game.leader; game.turn=1;            
             set(message_text,'string',msg2);
             while counter<(game.leader+4)
@@ -107,11 +113,12 @@ classdef Table <handle
                     game.players_turn=4;
                 end
                 set(player_text(game.players_turn),'BackgroundColor',[0,0,0.25])
-                [game.cards_played(game.players_turn),selected_card_ind]=tb.players(game.players_turn).play_Card(game,tb,win,player_hand_deck(game.players_turn));                
+                [game.cards_played(game.players_turn),selected_card_ind]=tb.players(game.players_turn).play_Card(game,tb,player_hand_deck(game.players_turn));                
                 player_hand_deck(game.players_turn).selected_start_index=selected_card_ind;
                 transfer_Selected_Cards(player_hand_deck(game.players_turn),player_played_card(game.players_turn));
                 update_Deck_Graphics(player_hand_deck(game.players_turn),disp_axes);
-                update_Deck_Graphics(player_played_card(game.players_turn),disp_axes); pause(win.UserData.game_delay);
+                update_Deck_Graphics(player_played_card(game.players_turn),disp_axes); 
+                pause(win.UserData.game_delay);
                 
                 % check if partner card is played.
                 % if yes, update table & notify players

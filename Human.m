@@ -34,7 +34,8 @@ classdef Human
             card_selected=all_cards([all_cards.value]==card_value_selected);
         end
         
-        function card_played=select_Card(pl, leading_suit,tb,win,player_hand_deck)
+        function card_played=select_Card(pl, leading_suit,tb,player_hand_deck)
+            win = tb.win_handle;
             all_suit = floor([pl.hand.value]/100);
             valid =0;
             while valid ==0
