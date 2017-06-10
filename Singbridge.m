@@ -39,8 +39,9 @@ pl(2) = Player('Vibot1',2,[]);
 pl(3) = Player('randomAI',3,[]);
 pl(4) = Player('Vibot1',4,[]);
 
+%player_text,score_text,role_text,message_text
 %draw textboxes to display player name, score,role and message
-[player_text,score_text,role_text,message_text,choice_button,bidsuit_button,...
+[all_texts,choice_button,bidsuit_button,...
     bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,...
     partner_button,call_button]=draw_Uicontrols(all_cards,pl,playfield_size,background_colour,...
     text_colour,role_text_colour,font_size);
@@ -54,10 +55,10 @@ while continue_game==1
     seed=rng;
     try
         %reset graphics
-        set(message_text,'fontsize',0.3);
-        set(message_text,'string','');
-        set(score_text,'string','');
-        set(role_text,'string','');
+        set(all_texts{4},'fontsize',0.3);
+        set(all_texts{4},'string','');
+        set(all_texts{2},'string','');
+        set(all_texts{3},'string','');
         
         %initialise players, table scores & set the state of game to 0
         tb=Table(pl,0,[0 0 0 0],win);
@@ -77,8 +78,8 @@ while continue_game==1
             end
             for n=1:4
                 request_reshuffle(n)=check_Points(tb.players(n),...         % ask fore reshuffle requests
-                    message_text,choice_button,win);   
-                set(message_text,'string','');                              % reset graphics
+                    all_texts{4},choice_button,win);   
+                set(all_texts{4},'string','');                              % reset graphics
                 set(choice_button(1),'visible','off');set(choice_button(2),'visible','off');
             end            
             if  sum(request_reshuffle)>0
@@ -88,28 +89,28 @@ while continue_game==1
             end
             no_times_dealt=1+no_times_dealt;
             if no_times_dealt>3                                             % can only accept reshuffle request 3 times
-                set(message_text,'string','Reshuffled 3 times. No longer accepting reshuffle request!'); pause(game_delay);
+                set(all_texts{4},'string','Reshuffled 3 times. No longer accepting reshuffle request!'); pause(game_delay);
                 break
             end
         end
-        set(message_text,'string','');
+        set(all_texts{4},'string','');
         
         % State 1: Bidding Process
         tb.state=1;
         %first bidder is assigned randomly
-        bidding_Process(tb,suit_name,score_text,message_text,bidsuit_button,...
-            bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,player_text);
+        bidding_Process(tb,suit_name,all_texts{2},all_texts{4},bidsuit_button,...
+            bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button,all_texts{1});
         set(bidsuit_button,'visible','off');set(bidnum_button,'visible','off');
         set(bid_button,'visible','off');set(pass_button,'visible','off');
         set(display_bidnum,'visible','off');set(display_bidsuit,'visible','off');
         msg1=sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
-        set(message_text,'string',msg1);
-        set(role_text(tb.declarer),'string','Declarer');
+        set(all_texts{4},'string',msg1);
+        set(all_texts{3}(tb.declarer),'string','Declarer');
         non_declarer=find([1 2 3 4]~=tb.declarer);
         
         % State 2: Choose partner
         tb.state=2;
-        call_Partner(tb,all_cards,message_text,...
+        call_Partner(tb,all_cards,all_texts{4},...
             partner_button,call_button,bidsuit_button,display_bidnum,display_bidsuit);
         set(bidsuit_button(1:4),'visible','off');
         set(display_bidnum,'visible','off'); set(display_bidsuit,'visible','off');
@@ -118,7 +119,7 @@ while continue_game==1
         msg2=strcat('Partner card is ',num_name(mod(tb.partner_card.value,100)-1),...
             ' ',suit_name(floor(tb.partner_card.value/100)));
         msg2=[msg1,msg2];
-        set(message_text,'string',msg2);
+        set(all_texts{4},'string',msg2);
         % non-bidder identify themselves
         for n=1:3
             identify_Role(tb.players(non_declarer(n)),tb.partner_card,tb.declarer);
@@ -134,20 +135,20 @@ while continue_game==1
         no_of_trick=1; %game counter
         game(no_of_trick).leader=first_Leader(tb);  % identify first leader       
         while no_of_trick<=13
-            game(no_of_trick+1).leader=trick(tb,game(no_of_trick), message_text,role_text,...
-                player_hand_deck,disp_axes,player_played_card,msg2,player_text);
+            game(no_of_trick+1).leader=trick(tb,game(no_of_trick), all_texts{4},all_texts{3},...
+                player_hand_deck,disp_axes,player_played_card,msg2,all_texts{1});
             tb.scores(game(no_of_trick+1).leader)=tb.scores(game(no_of_trick+1).leader)+1;
             no_of_trick=no_of_trick+1;
             for n=1:4
-                set(score_text(n),'string',num2str(tb.scores(n)));
+                set(all_texts{2}(n),'string',num2str(tb.scores(n)));
             end
         end
         
         % declare winning team
         [winning_team, no_set_won_above_bid]=who_Win(tb);
         msg3=sprintf('Winning team is %s. No of set won above bid is %d \n',winning_team, no_set_won_above_bid);
-        set(message_text,'fontsize',0.2)
-        set(message_text,'string',[msg3,'Continue game?'])
+        set(all_texts{4},'fontsize',0.2)
+        set(all_texts{4},'string',[msg3,'Continue game?'])
         set(win,'ButtonDownFcn','')
     catch ME
         msg = getReport(ME); disp(msg);
@@ -195,7 +196,8 @@ close all
         end
     end
 %function to draw the uicontrols
-    function [player_text,score_text,role_text,message_text,choice_button,bidsuit_button,bidnum_button,...
+    function [all_texts,...
+            choice_button,bidsuit_button,bidnum_button,...
             display_bidnum,display_bidsuit,bid_button,pass_button,partner_button,call_button]=draw_Uicontrols(...
         all_cards,pl,playfield_size,background_colour,text_colour,role_text_colour,font_size)
     
@@ -215,18 +217,6 @@ close all
         set(player_text,'FontUnits','normalized','BackgroundColor',background_colour,'ForegroundColor',text_colour,...
             'FontSize',font_size);
         
-        role_text(1)=uicontrol('style','text',...
-            'position',[card_width*5,20+card_height,card_width*1.2,25]);
-        role_text(2)=uicontrol('style','text',...
-            'position',[card_width+15,card_height*2+card_voffset*2-35,card_width*1.2,25]);
-        role_text(3)=uicontrol('style','text',...
-            'position',[card_width*5,card_height*2+10*card_voffset-35,card_width*1.2,25]);
-        role_text(4)=uicontrol('style','text',...
-            'position',[card_width*12+10,card_height*2+card_voffset*2-35,card_width*1.2,25]);
-        set(role_text,'FontUnits','normalized','BackgroundColor',...
-            background_colour,'ForegroundColor',text_colour,...
-            'FontSize',font_size,'string','');
-        
         score_text(1)=uicontrol('style','text',...
             'position',[card_width*8,20+card_height,card_width,25]);
         score_text(2)=uicontrol('style','text',...
@@ -239,11 +229,25 @@ close all
             background_colour,'ForegroundColor',text_colour,...
             'FontSize',font_size,'string','');
         
+        role_text(1)=uicontrol('style','text',...
+            'position',[card_width*5,20+card_height,card_width*1.2,25]);
+        role_text(2)=uicontrol('style','text',...
+            'position',[card_width+15,card_height*2+card_voffset*2-35,card_width*1.2,25]);
+        role_text(3)=uicontrol('style','text',...
+            'position',[card_width*5,card_height*2+10*card_voffset-35,card_width*1.2,25]);
+        role_text(4)=uicontrol('style','text',...
+            'position',[card_width*12+10,card_height*2+card_voffset*2-35,card_width*1.2,25]);
+        set(role_text,'FontUnits','normalized','BackgroundColor',...
+            background_colour,'ForegroundColor',text_colour,...
+            'FontSize',font_size,'string','');
+
         message_text=uicontrol('style','text','string','',...
             'position',[card_width*3+15,card_height*2+card_voffset*2-5,playfield_size(1)*0.5,playfield_size(2)*0.15],...
             'FontUnits','normalized','BackgroundColor',background_colour,'ForegroundColor',[1 1 1],...
             'FontSize',0.3);
        
+        all_texts = {player_text,score_text,role_text,message_text};
+        
         for j=1:7
             bidnum_button(j)=uicontrol('style','pushbutton','string',num2str(j),...
                 'position',[card_width*2.5+card_width*0.5*(j-1),card_height*2+card_voffset*2-35,card_width*0.4,30],...
