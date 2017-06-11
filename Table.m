@@ -100,23 +100,24 @@ classdef Table <handle
             set(display_bid,'visible','off');
         end
         
+        % Call the partner
         function call_Partner(tb,all_cards,display_bid)            
             tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb,display_bid);
             set(display_bid,'visible','off');
             set(display_bid,'string','');
         end
-        
+        % Determine the leader
         function leader=first_Leader(tb)
             j =dec2base(tb.bid,10) - '0';
             if j(2)==5
                 leader=tb.declarer;
             else
-                i=mod(tb.declarer,4)+1; %person left of declarer
+                i=mod(tb.declarer,4)+1; % Person left of declarer
                 leader=i;
             end
         end
         
-        function next_leader=trick(tb,game,player_hand_deck,player_played_card,msg2)
+        function next_leader=trick(tb,game,player_hand_deck,player_played_card,msg)
             message_text = tb.all_texts{4};
             role_text = tb.all_texts{3};
             player_text = tb.all_texts{1};
@@ -124,7 +125,7 @@ classdef Table <handle
             A = [1 2 3 4];
             
             counter=game.leader; game.turn=1;
-            set(message_text,'string',msg2);
+            set(message_text,'string',msg);
             while counter<(game.leader+4)
                 game.players_turn=mod(counter-1,4)+1;
                 set(player_text(game.players_turn),'BackgroundColor',[0,0,0.25])
@@ -182,6 +183,7 @@ classdef Table <handle
                 no_set_won_above_bid=defender_team_score-tb.defender_win_set;
             end
         end
+        
         function reset_Table(tb)
             tb.state = 0; 
             tb.scores = [0 0 0 0];

@@ -143,7 +143,8 @@ classdef Player < handle
                     disp('Player type not valid')
             end            
             selected_card_ind=find([player.hand.value]==card_played.value);
-            % Update hand of player by removing the played card
+            
+            % Update hand of player
             player.hand=player.hand([player.hand.value]~=card_played.value);
             player_hand_deck.selected_start_index = selected_card_ind;
             transfer_Selected_Cards(player_hand_deck,player_played_card);

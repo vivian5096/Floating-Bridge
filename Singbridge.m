@@ -111,8 +111,8 @@ while continue_game==1
         set(all_texts{4},'string',msg3);
         pause(1)
         % Non-bidder identify themselves
-        for n=1:3
-            identify_Role(tb.players(non_declarer(n)),tb.partner_card,tb.declarer);
+        for n=non_declarer
+            identify_Role(tb.players(n),tb.partner_card,tb.declarer);
         end
         
         % Start game
@@ -123,15 +123,14 @@ while continue_game==1
             game(n)=Game(n);
         end
         no_of_trick=1; % Game counter
-        game(no_of_trick).leader = first_Leader(tb);  % identify first leader       
+        game(no_of_trick).leader = first_Leader(tb);  % identify first leader
+        set(all_texts{2},'string',num2str(0));
         while no_of_trick<=13
-            game(no_of_trick+1).leader=trick(tb,game(no_of_trick),...
-                player_hand_deck,player_played_card,msg3);
-            tb.scores(game(no_of_trick+1).leader)=tb.scores(game(no_of_trick+1).leader)+1;
+            winner=trick(tb,game(no_of_trick),player_hand_deck,player_played_card,msg3);
+            game(no_of_trick+1).leader = winner;
+            tb.scores(winner)=tb.scores(winner)+1;
+            set(all_texts{2}(winner),'string',num2str(tb.scores(winner)));
             no_of_trick=no_of_trick+1;
-            for n=1:4
-                set(all_texts{2}(n),'string',num2str(tb.scores(n)));
-            end
         end
         
         % declare winning team
