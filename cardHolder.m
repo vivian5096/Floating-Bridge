@@ -26,6 +26,7 @@ classdef cardHolder < handle
         card_graphics_data = {}
         card_draw_handle = []
         card_text = []
+        axes_handle
     end
     properties (SetAccess = public)
         always_hidden                                                     % Never open the hidden cards
@@ -34,7 +35,7 @@ classdef cardHolder < handle
     end
     methods
         %% Constructor
-        function cH = cardHolder(x,y,cards,card_width,card_height,offset,deck_orientation,start_display_index,hidden_cards,always_hidden,receivable)
+        function cH = cardHolder(x,y,cards,card_width,card_height,offset,deck_orientation,start_display_index,hidden_cards,always_hidden,receivable,axes_handle)
             cH.x = x;
             cH.y = y;
             
@@ -68,6 +69,8 @@ classdef cardHolder < handle
             
             cH.selected_start_index = 0;
             cH.update_deck_dimensions()
+            
+            cH.axes_handle = axes_handle;
         end
         %% Deck Get Functions
         % Get the number of cards in the deck
@@ -160,6 +163,7 @@ classdef cardHolder < handle
              cH.current_display_index = min(cH.current_display_index,cH.start_display_index);     
             end
             cH.update_deck_dimensions(); %Update the deck dimensions
+            cH.update_Deck_Graphics()
         end
         
         % Remove the selected cards
@@ -176,6 +180,7 @@ classdef cardHolder < handle
 
             %cH.selected_start_index = 0;
             cH.update_deck_dimensions()
+            cH.update_Deck_Graphics()
         end
         
          % Reveal a specified number of hidden cards from the top
@@ -192,6 +197,11 @@ classdef cardHolder < handle
             cH_to.append_Cards(selected_cards);
             cH.remove_Selected_Cards();
             cH.selected_start_index=0;
+            
+            cH.update_deck_dimensions()
+            cH.update_Deck_Graphics()
+            cH_to.update_deck_dimensions()
+            cH_to.update_Deck_Graphics()
         end
         
         % Reset the number of cards to display
@@ -226,16 +236,16 @@ classdef cardHolder < handle
                 cH.deck_height = cH.card_height;
             end
         end
-        function update_Deck_Graphics(cH,disp_axes)
+        function update_Deck_Graphics(cH)
             cH.wipe_Deck_Graphics();
-            cH.render_Deck(disp_axes);
+            cH.render_Deck();
         end
         
         % Clear the cards in the deck
-        function clear_Deck(cH,disp_axes)
+        function clear_Deck(cH)
             cH.cards = [];
             cH.update_deck_dimensions();
-            cH.update_Deck_Graphics(disp_axes);
+            cH.update_Deck_Graphics();
         end
         %% Deck Console Functions
         % Display the cards on console
@@ -245,14 +255,15 @@ classdef cardHolder < handle
        
         %% Rendering functions        
         % Render the deck outline
-        function render_deck_outline(cH,disp_axes)
-            line(disp_axes,[cH.x cH.x+cH.card_width cH.x+cH.card_width cH.x cH.x],...
+        function render_deck_outline(cH)
+            line(cH.axes_handle,[cH.x cH.x+cH.card_width cH.x+cH.card_width cH.x cH.x],...
                  [cH.y cH.y cH.y-cH.card_height cH.y-cH.card_height cH.y],...
                  'PickablePart','none','Color',[1 1 1],'LineWidth',1)
         end
         
         % Render the cards in the deck
-        function render_Deck(cH,disp_axes)
+        function render_Deck(cH)
+            disp_axes = cH.axes_handle;
             % Draw shadow
 %             if cH.get_Number_Of_Cards()>0
 %                 deck_vertices(1,:) = [cH.x cH.x+cH.deck_width cH.x+cH.deck_width cH.x]+5;

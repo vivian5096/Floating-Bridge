@@ -106,8 +106,7 @@ classdef Player < handle
                     card_selected=AI.getAction(player,2,table.trump_suit,all_cards);
                 case 'Human'
                     set(bidsuit_button(1:4),'visible','on');
-                    set(display_bid,'string','');
-                    set(display_bid,'visible','on');
+                    set(display_bid,'string','','visible','on');
                     set(partner_button,'visible','on');set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
                     card_selected=Human.partner(player,all_cards,table.win_handle,message_text);
@@ -120,12 +119,11 @@ classdef Player < handle
                 otherwise
                     disp('Player type not valid')
             end
-
         end
         
         function identify_Role(player,partner_card,declarer)
-            got_card=[player.hand.value]==partner_card.value;
-            if got_card ==0
+            got_card = any([player.hand.value]==partner_card.value);
+            if ~got_card
                 player.role='Defender';
             else
                 player.role='Partner';

@@ -40,6 +40,7 @@ classdef Table <handle
             tb.all_texts = all_texts;
         end
         
+        % The entire bidding process
         function bidding_Process(tb,suit_name,display_bid)
             % UI handles
             score_text = tb.all_texts{2};
@@ -55,7 +56,7 @@ classdef Table <handle
             end
             set(message_text,'string','Start bidding');
             pause(win.UserData.game_delay);
-            first_bidder=randi(4);
+            first_bidder = randi(4);
             counter=first_bidder; no_of_pass=0; tb.bid=0; pl_bids=zeros(7,4);
             %options=cumsum(ones(5,7))+ cumsum(ones(7,5)*10)';
             %options=reshape(options,[1,size(options,1)*size(options,2)]);
@@ -82,24 +83,27 @@ classdef Table <handle
                 pause(win.UserData.game_delay);   
                 set(player_text(i),'BackgroundColor',win.UserData.background_colour);
             end
-
+            % Update role of player who is declarer
             tb.declarer = mod(i,4)+1;
-            name_Declarer(tb.players(tb.declarer)); %update role of player who is declarer
-            % Update properties of table
+            name_Declarer(tb.players(tb.declarer)); 
+            % Determine the number of wins required, and store it in Table
             j =dec2base(tb.bid,10) - '0';
             tb.trump_suit=j(2);
             tb.declarer_win_set=6+j(1);
             tb.defender_win_set=14-tb.declarer_win_set;
-            
+            % Reset some Userdata for partner calling, and turn off buttons
             tb.win_handle.UserData.bidnum = '';
             tb.win_handle.UserData.bidsuit = '';
             for n = 1:4
                 set(tb.bidding_buttons{n},'visible','off')
-            end
+            end 
+            set(display_bid,'visible','off');
         end
         
         function call_Partner(tb,all_cards,display_bid)            
             tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb,display_bid);
+            set(display_bid,'visible','off');
+            set(display_bid,'string','');
         end
         
         function leader=first_Leader(tb)
@@ -107,17 +111,12 @@ classdef Table <handle
             if j(2)==5
                 leader=tb.declarer;
             else
-                i=mod(tb.declarer+1,4); %person left of declarer
-                if i==0
-                    i=4;
-                end
+                i=mod(tb.declarer,4)+1; %person left of declarer
                 leader=i;
             end
         end
         
-        
-        function next_leader=trick(tb,game,player_hand_deck,...
-                disp_axes,player_played_card,msg2)
+        function next_leader=trick(tb,game,player_hand_deck,player_played_card,msg2)
             message_text = tb.all_texts{4};
             role_text = tb.all_texts{3};
             player_text = tb.all_texts{1};
@@ -126,16 +125,15 @@ classdef Table <handle
             counter=game.leader; game.turn=1;
             set(message_text,'string',msg2);
             while counter<(game.leader+4)
-                game.players_turn=mod(counter,4);
-                if game.players_turn==0
-                    game.players_turn=4;
-                end
+                game.players_turn=mod(counter-1,4)+1;
                 set(player_text(game.players_turn),'BackgroundColor',[0,0,0.25])
-                [game.cards_played(game.players_turn),selected_card_ind]=tb.players(game.players_turn).play_Card(game,tb,player_hand_deck(game.players_turn));
+                [game.cards_played(game.players_turn),selected_card_ind]=...
+                    tb.players(game.players_turn).play_Card(game,tb,player_hand_deck(game.players_turn));
+                
                 player_hand_deck(game.players_turn).selected_start_index=selected_card_ind;
                 transfer_Selected_Cards(player_hand_deck(game.players_turn),player_played_card(game.players_turn));
-                update_Deck_Graphics(player_hand_deck(game.players_turn),disp_axes);
-                update_Deck_Graphics(player_played_card(game.players_turn),disp_axes);
+%                 update_Deck_Graphics(player_hand_deck(game.players_turn),disp_axes);
+%                 update_Deck_Graphics(player_played_card(game.players_turn),disp_axes);
                 pause(win.UserData.game_delay);
                 
                 % check if partner card is played.
@@ -182,7 +180,7 @@ classdef Table <handle
             end
             for n=1:4
                 update_Memory(tb.players(n),game);
-                clear_Deck(player_played_card(n),disp_axes);
+                clear_Deck(player_played_card(n));
             end
         end
         

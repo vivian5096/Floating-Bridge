@@ -28,8 +28,8 @@ suit_name={'Clubs','Diamonds','Hearts','Spades','No Trump'};
 num_name={'2','3','4','5','6','7','8','9','10','J','Q','K','A'};
 
 % Prepare playfield and drawing axes
-[player_hand_deck,player_played_card,playfield_size,midfield_size] = prepare_playfield(all_cards,win_ratio,see_all_deck);
 disp_axes = axes('Parent',win,'Position',[0 0 1 1]);
+[player_hand_deck,player_played_card,playfield_size,midfield_size] = prepare_playfield(all_cards,win_ratio,see_all_deck);
 set(disp_axes,'Xlim',[0 playfield_size(1)],'Ylim',[0 playfield_size(2)],...
     'XLimMode','manual','YLimMode','manual','Visible','off','NextPlot','add');
 
@@ -69,7 +69,7 @@ while continue_game==1
                 update_Hand(tb.players(n),Decks(n,:));                                  % Distribute cards
                 append_Cards(player_hand_deck(n),Decks(n,:));                           % Update cardholder
                 player_hand_deck(n).always_hidden = ~strcmp(tb.players(n).type,'Human');% only show human player's card
-                update_Deck_Graphics(player_hand_deck(n),disp_axes);                    % update graphics
+                update_Deck_Graphics(player_hand_deck(n));                    % update graphics
                 determine_Point(tb.players(n));                                         % all players determine points
             end
             if no_times_dealt>3                                             % can only accept reshuffle request 3 times
@@ -85,7 +85,7 @@ while continue_game==1
             end            
             if any(request_reshuffle)
                 for n=1:4
-                    clear_Deck(player_hand_deck(n),disp_axes);
+                    clear_Deck(player_hand_deck(n));
                 end
             end
         end
@@ -95,8 +95,7 @@ while continue_game==1
         tb.state=1;
         % First bidder is assigned randomly
         bidding_Process(tb,suit_name,display_bid);
-        
-        set(display_bid,'visible','off');
+
         msg1 =sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
         set(all_texts{4},'string',msg1);
         set(all_texts{3}(tb.declarer),'string','Declarer');
@@ -105,14 +104,13 @@ while continue_game==1
         % State 2: Choose partner
         tb.state=2;
         call_Partner(tb,all_cards,display_bid);
-        set(display_bid,'visible','off');
-        set(display_bid,'string','');
+        
         msg2 =['Partner card is ',num_name{mod(tb.partner_card.value,100)-1},...
             ' ',suit_name{floor(tb.partner_card.value/100)}];
         msg3 = {msg1,msg2};
         set(all_texts{4},'string',msg3);
         pause(1)
-        % non-bidder identify themselves
+        % Non-bidder identify themselves
         for n=1:3
             identify_Role(tb.players(non_declarer(n)),tb.partner_card,tb.declarer);
         end
@@ -120,15 +118,15 @@ while continue_game==1
         % Start game
         tb.state=3;
         set(win,'ButtonDownFcn',@check_clicked_deck)
-        % initialise 13 games
+        % Initialise 13 games
         for n=1:14
             game(n)=Game(n);
         end
-        no_of_trick=1; %game counter
-        game(no_of_trick).leader=first_Leader(tb);  % identify first leader       
+        no_of_trick=1; % Game counter
+        game(no_of_trick).leader = first_Leader(tb);  % identify first leader       
         while no_of_trick<=13
             game(no_of_trick+1).leader=trick(tb,game(no_of_trick),...
-                player_hand_deck,disp_axes,player_played_card,msg3);
+                player_hand_deck,player_played_card,msg3);
             tb.scores(game(no_of_trick+1).leader)=tb.scores(game(no_of_trick+1).leader)+1;
             no_of_trick=no_of_trick+1;
             for n=1:4
@@ -178,13 +176,13 @@ close all
                 start_x + card_width*(i~=2) + (card_width+card_hoffset*12)*(i==4),...
                 start_y + card_height + (card_voffset*12+card_height*(1+mod(i,2)))*(i~=1),...
                 [],card_width,card_height,card_hoffset*mod(i,2)+card_voffset*mod(i-1,2),...
-                mod(i,2),-1,0,see_all_deck,0);
+                mod(i,2),-1,0,see_all_deck,0,disp_axes);
         
             player_played_card(i)=cardHolder(...
                 midfield_size(1) + (midfield_size(3) - card_width)/2* (1-sin(pi/2*(i-1))),...
                 midfield_size(2) + midfield_size(4)/2 * (1-cos(pi/2*(i-1)))...
                 + card_height/2 * (1+cos(pi/2*(i-1))),...
-                [],card_width,card_height,card_hoffset,'horizontal',-1,0,0,0);
+                [],card_width,card_height,card_hoffset,'horizontal',-1,0,0,0,disp_axes);
 
         end
    
@@ -280,12 +278,12 @@ close all
     function draw_playfield(player_hand_deck,player_played_card)
         cla(disp_axes);     % Clear the play field axes, not that it is needed since it is only called during initialisation
         for i = 1:length(player_hand_deck)
-            player_hand_deck(i).update_Deck_Graphics(disp_axes);
+            player_hand_deck(i).update_Deck_Graphics();
         end
         
         for i = 1:length(player_played_card)
-            player_played_card(i).render_deck_outline(disp_axes);
-            player_played_card(i).update_Deck_Graphics(disp_axes);
+            player_played_card(i).render_deck_outline();
+            player_played_card(i).update_Deck_Graphics();
         end
     end
 
