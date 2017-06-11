@@ -137,8 +137,7 @@ while continue_game==1
         % declare winning team
         [winning_team, no_set_won_above_bid]=who_Win(tb);
         msg3=sprintf('Winning team is %s. No of set won above bid is %d \n',winning_team, no_set_won_above_bid);
-        set(all_texts{4},'fontsize',0.2)
-        set(all_texts{4},'string',[msg3,'Continue game?'])
+        set(all_texts{4},'string',[msg3,'Continue game?'],'fontsize',0.2)
         set(win,'ButtonDownFcn','')
     catch ME
         msg = getReport(ME); disp(msg);

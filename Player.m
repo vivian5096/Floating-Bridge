@@ -131,7 +131,7 @@ classdef Player < handle
             end
         end
         
-        function [card_played,selected_card_ind]=play_Card(player, round,tb,player_hand_deck)
+        function [card_played,selected_card_ind]=play_Card(player, round,tb,player_hand_deck,player_played_card)
             switch player.type
                 case 'randomAI'
                     card_played=AI.getAction(player, 3,round.leading_suit,tb);
@@ -143,9 +143,10 @@ classdef Player < handle
                     disp('Player type not valid')
             end            
             selected_card_ind=find([player.hand.value]==card_played.value);
-            % update hand of player by removing the played card
-            index=find([player.hand.value]~=card_played.value);
-            player.hand=player.hand(index);
+            % Update hand of player by removing the played card
+            player.hand=player.hand([player.hand.value]~=card_played.value);
+            player_hand_deck.selected_start_index = selected_card_ind;
+            transfer_Selected_Cards(player_hand_deck,player_played_card);
         end
         
         function update_Players_Partners(pl,partner,defenders)

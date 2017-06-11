@@ -121,37 +121,32 @@ classdef Table <handle
             role_text = tb.all_texts{3};
             player_text = tb.all_texts{1};
             win = tb.win_handle;
+            A = [1 2 3 4];
             
             counter=game.leader; game.turn=1;
             set(message_text,'string',msg2);
             while counter<(game.leader+4)
                 game.players_turn=mod(counter-1,4)+1;
                 set(player_text(game.players_turn),'BackgroundColor',[0,0,0.25])
-                [game.cards_played(game.players_turn),selected_card_ind]=...
-                    tb.players(game.players_turn).play_Card(game,tb,player_hand_deck(game.players_turn));
-                
-                player_hand_deck(game.players_turn).selected_start_index=selected_card_ind;
-                transfer_Selected_Cards(player_hand_deck(game.players_turn),player_played_card(game.players_turn));
-%                 update_Deck_Graphics(player_hand_deck(game.players_turn),disp_axes);
-%                 update_Deck_Graphics(player_played_card(game.players_turn),disp_axes);
+                game.cards_played(game.players_turn)=...
+                    tb.players(game.players_turn).play_Card(game,tb,player_hand_deck(game.players_turn),player_played_card(game.players_turn));
+
                 pause(win.UserData.game_delay);
-                
-                % check if partner card is played.
-                % if yes, update table & notify players
+                % Check if partner card is played.
+                % If yes, update table & notify players
                 if game.cards_played(game.players_turn).value==tb.partner_card.value
-                    tb.declarer_partner=game.players_turn;
-                    non_declarer=find([1 2 3 4]~=tb.declarer);
-                    tb.defenders=find(non_declarer~=tb.declarer_partner);
-                    non_declarerpartner=find([1 2 3 4]~=tb.declarer_partner);
-                    for n=1:3
+                    tb.declarer_partner = game.players_turn;
+                    non_declarer = A(A~=tb.declarer);
+                    tb.defenders = non_declarer(non_declarer~=tb.declarer_partner);
+                    non_declarerpartner = A(A~=tb.declarer_partner);
+                    for n = 1:3
                         update_Players_Partners(tb.players(non_declarerpartner(n)),tb.declarer_partner, tb.defenders);
                         set(role_text(non_declarer(n)),'string',tb.players(non_declarer(n)).role);
                     end
                 end
-                % update leading suit played by first player
+                % Update leading suit played by first player
                 if game.leading_suit==0
-                    suit_played=floor(game.cards_played(game.players_turn).value/100);
-                    game.leading_suit=suit_played;
+                    game.leading_suit=floor(game.cards_played(game.players_turn).value/100);
                 end
                 counter=counter+1; game.turn=game.turn+1;
                 set(player_text(game.players_turn),'BackgroundColor',win.UserData.background_colour);
@@ -159,11 +154,7 @@ classdef Table <handle
             %decide winner
             suit_played= floor([game.cards_played.value]/100);
             if any (suit_played == tb.trump_suit)
-                a=find(suit_played == tb.trump_suit);
-                trump_played=[];
-                for i=1:length(a)
-                    trump_played=[trump_played game.cards_played(a(i))];
-                end
+                trump_played=game.cards_played(suit_played == tb.trump_suit);
                 next_leader=find([game.cards_played.value]==max([trump_played.value]));
                 if tb.trump_broken~=1
                     tb.trump_broken=1;
@@ -171,12 +162,8 @@ classdef Table <handle
                     pause(1)
                 end
             else
-                b=find(suit_played == game.leading_suit);
-                follow_suit_played=[];
-                for i=1:length(b)
-                    follow_suit_played=[follow_suit_played game.cards_played(b(i))];
-                end
-                next_leader=find([game.cards_played.value]==max([follow_suit_played.value]));
+                follow_suit_played=game.cards_played(suit_played == game.leading_suit);
+                next_leader = find([game.cards_played.value]==max([follow_suit_played.value]));
             end
             for n=1:4
                 update_Memory(tb.players(n),game);
