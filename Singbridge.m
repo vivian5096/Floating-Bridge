@@ -1,4 +1,5 @@
 function seed=Singbridge()
+%% Initialisations
 clc
 close all
 % Get information about the screen
@@ -39,8 +40,7 @@ pl(2) = Player('Vibot1',2,[]);
 pl(3) = Player('randomAI',3,[]);
 pl(4) = Player('Vibot1',4,[]);
 
-%bidsuit_button,bidnum_button,bid_button,pass_button,partner_button,call_button
-%draw textboxes to display player name, score,role and message
+% Draw textboxes to display player name, score,role and message
 [all_texts,bidding_buttons,choice_button,display_bid]=draw_Uicontrols(all_cards,pl,midfield_size,background_colour,...
     text_colour,role_text_colour,font_size);
 draw_playfield(player_hand_deck,player_played_card)
@@ -49,32 +49,33 @@ set(win,'Visible','on')
 %                  [0 0 midfield_size(4) midfield_size(4) 0]+midfield_size(2),...
 %                  'PickablePart','none','Color',[1 1 1],'LineWidth',1)
 
-%initialise players, table scores & set the state of game to 0
+% Initialise players, table scores & set the state of game to 0
 tb=Table(pl,0,[0 0 0 0],win,bidding_buttons,all_texts);
-%loop game
+
+%% Game Loop
 continue_game=1;
 while continue_game==1
     seed=rng;
     try
+        %Reset Table
         reset_Table(tb);
-        %reset graphics
-        for n = 2:4
-            set(all_texts{n},'string','');
-        end
-        set(all_texts{n},'fontsize',0.3);
 
         % state 0: shuffling, dealing out cards & request for reshuffle
         no_times_dealt=0; request_reshuffle=[1;1;1;1];
-        while sum(request_reshuffle)>0
+        while any(request_reshuffle)
             Decks = Table.shuffle(all_cards);%(all_cards,1) to manually allocate the cards % autoshuffle cards
+            no_times_dealt = no_times_dealt+1;
             for n=1:4
-                update_Hand(tb.players(n),Decks(n,:));                      % distribute cards
-                append_Cards(player_hand_deck(n),Decks(n,:));               % update cardholder
-                if strcmp(tb.players(n).type,'Human')
-                    player_hand_deck(n).always_hidden=0;                    % only show human player's card
-                end
-                update_Deck_Graphics(player_hand_deck(n),disp_axes);        % update graphics
-                determine_Point(tb.players(n));                             % all players determine points
+                update_Hand(tb.players(n),Decks(n,:));                                  % Distribute cards
+                append_Cards(player_hand_deck(n),Decks(n,:));                           % Update cardholder
+                player_hand_deck(n).always_hidden = ~strcmp(tb.players(n).type,'Human');% only show human player's card
+                update_Deck_Graphics(player_hand_deck(n),disp_axes);                    % update graphics
+                determine_Point(tb.players(n));                                         % all players determine points
+            end
+            if no_times_dealt>3                                             % can only accept reshuffle request 3 times
+                set(all_texts{4},'string','Reshuffled 3 times. No longer accepting reshuffle request!'); 
+                pause(game_delay);
+                break
             end
             for n=1:4
                 request_reshuffle(n)=check_Points(tb.players(n),...         % ask for reshuffle requests
@@ -82,16 +83,10 @@ while continue_game==1
                 set(all_texts{4},'string','');                              % reset graphics
                 set(choice_button,'visible','off');
             end            
-            if  sum(request_reshuffle)>0
+            if  any(request_reshuffle)
                 for n=1:4
                     clear_Deck(player_hand_deck(n),disp_axes);
                 end
-            end
-            no_times_dealt=1+no_times_dealt;
-            if no_times_dealt>3                                             % can only accept reshuffle request 3 times
-                set(all_texts{4},'string','Reshuffled 3 times. No longer accepting reshuffle request!'); 
-                pause(game_delay);
-                break
             end
         end
         set(all_texts{4},'string','');

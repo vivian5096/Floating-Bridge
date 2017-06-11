@@ -20,6 +20,7 @@ classdef Table <handle
         win_handle          % The handle of the window which the game is on
         bidding_buttons
         all_texts
+        
     end
     
     methods
@@ -203,6 +204,11 @@ classdef Table <handle
             tb.state = 0; 
             tb.scores = [0 0 0 0];
             tb.trump_broken = 0;
+            % Reset graphics
+            for n = 2:4
+                set(tb.all_texts{n},'string','');
+            end
+            set(tb.all_texts{n},'fontsize',0.3);
         end
     end
     

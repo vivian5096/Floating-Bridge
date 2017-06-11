@@ -52,13 +52,14 @@ classdef Player < handle
         end
         
         function request_reshuffle=check_Points(player,message_text,choice_button,win)
+            request_reshuffle=0;
             if player.points<4
                 switch player.type
                     case 'randomAI'
                         request_reshuffle=AI.getAction(player,0);
                     case 'Human'
                         set(message_text,'string','Do you want to request for reshuffle?');
-                        set(choice_button(1),'visible','on');set(choice_button(2),'visible','on');
+                        set(choice_button,'visible','on');
                         uiwait(win);
                         request_reshuffle=win.UserData.decision;
                     case 'Vibot1'
@@ -66,11 +67,10 @@ classdef Player < handle
                     otherwise
                         disp('Player type not valid')
                 end
-            else
-                request_reshuffle=0;
             end
-            if request_reshuffle==1
+            if (request_reshuffle)
                 set(message_text,'string',['Player ',num2str(player.num),' requested for reshuffle']);
+                pause(1);
             end
         end
         
