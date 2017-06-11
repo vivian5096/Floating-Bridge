@@ -95,7 +95,7 @@ classdef Player < handle
             player.role='Declarer';
         end
         
-        function card_selected=choose_Partner(player,all_cards,table,display_bid)
+        function card_selected=choose_Partner(player,all_cards,table)
             partner_button = table.bidding_buttons{5};
             call_button = table.bidding_buttons{6};
             bidsuit_button = table.bidding_buttons{1};
@@ -106,7 +106,7 @@ classdef Player < handle
                     card_selected=AI.getAction(player,2,table.trump_suit,all_cards);
                 case 'Human'
                     set(bidsuit_button(1:4),'visible','on');
-                    set(display_bid,'string','','visible','on');
+                    set(table.display_bid,'string','','visible','on');
                     set(partner_button,'visible','on');set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
                     card_selected=Human.partner(player,all_cards,table.win_handle,message_text);

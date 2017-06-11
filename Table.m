@@ -20,12 +20,12 @@ classdef Table <handle
         win_handle          % The handle of the window which the game is on
         bidding_buttons
         all_texts
-        
+        display_bid
     end
     
     methods
         % Initialisation
-        function tb=Table(players,state,scores,win,bidding_buttons,all_texts)
+        function tb=Table(players,state,scores,win,bidding_buttons,all_texts,display_bid)
             tb.players=players;
             tb.state=state;
             tb.bid=0;
@@ -38,10 +38,11 @@ classdef Table <handle
             tb.win_handle = win;
             tb.bidding_buttons = bidding_buttons;
             tb.all_texts = all_texts;
+            tb.display_bid = display_bid;
         end
         
         % The entire bidding process
-        function bidding_Process(tb,suit_name,display_bid)
+        function bidding_Process(tb,suit_name)
             % UI handles
             score_text = tb.all_texts{2};
             message_text = tb.all_texts{4};
@@ -50,7 +51,7 @@ classdef Table <handle
             
             set(message_text,'string','The game is starting soon...');
             pause(5)
-            set(display_bid,'visible','on');
+            set(tb.display_bid,'visible','on');
             for n = 1:4
                 set(tb.bidding_buttons{n},'visible','on')
             end
@@ -97,14 +98,14 @@ classdef Table <handle
             for n = 1:4
                 set(tb.bidding_buttons{n},'visible','off')
             end 
-            set(display_bid,'visible','off');
+            set(tb.display_bid,'visible','off');
         end
         
         % Call the partner
-        function call_Partner(tb,all_cards,display_bid)            
-            tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb,display_bid);
-            set(display_bid,'visible','off');
-            set(display_bid,'string','');
+        function call_Partner(tb,all_cards)            
+            tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb);
+            set(tb.display_bid,'visible','off');
+            set(tb.display_bid,'string','');
         end
         % Determine the leader
         function leader=first_Leader(tb)

@@ -50,7 +50,7 @@ set(win,'Visible','on')
 %                  'PickablePart','none','Color',[1 1 1],'LineWidth',1)
 
 % Initialise players, table scores & set the state of game to 0
-tb=Table(pl,0,[0 0 0 0],win,bidding_buttons,all_texts);
+tb=Table(pl,0,[0 0 0 0],win,bidding_buttons,all_texts,display_bid);
 
 %% Game Loop
 continue_game=1;
@@ -94,7 +94,7 @@ while continue_game==1
         % State 1: Bidding Process
         tb.state=1;
         % First bidder is assigned randomly
-        bidding_Process(tb,suit_name,display_bid);
+        bidding_Process(tb,suit_name);
 
         msg1 =sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
         set(all_texts{4},'string',msg1);
@@ -103,7 +103,7 @@ while continue_game==1
         pause(1)
         % State 2: Choose partner
         tb.state=2;
-        call_Partner(tb,all_cards,display_bid);
+        call_Partner(tb,all_cards);
         
         msg2 =['Partner card is ',num_name{mod(tb.partner_card.value,100)-1},...
             ' ',suit_name{floor(tb.partner_card.value/100)}];

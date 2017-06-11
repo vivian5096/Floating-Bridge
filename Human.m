@@ -43,7 +43,7 @@ classdef Human
                     card_ind = check_selection(player_hand_deck,win.UserData.Xx,win.UserData.Yy);
                     card_selected=pl.hand(card_ind).value;
                     suit = floor(card_selected/100);
-                    if any([pl.hand.value]==card_selected)%>0
+                    if any([pl.hand.value]==card_selected)
                         if suit==leading_suit
                             valid=1;
                         elseif leading_suit==0
