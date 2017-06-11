@@ -1,6 +1,6 @@
 classdef Player < handle
     properties (SetAccess = private)
-        num %which player num are you?
+        num % which player num are you?
         type
         hand        
         role
@@ -43,14 +43,10 @@ classdef Player < handle
             cards_value = [player.hand.value];
             cards_suits = floor(cards_value/100);
             cards_num = mod(cards_value,100);
-            points_jqka = zeros(1,4);
-            for i=1:4
-                points_jqka(i)=sum(cards_num==10+i)*i;
-            end
-            no_of_cards_in_each_suit = zeros(1,4);
-            for n=1:4
-                no_of_cards_in_each_suit(n)=sum(cards_suits==n);
-            end
+
+            points_jqka = floor(cards_num/10).*mod(cards_num,10);
+            [~,FCI] = unique(cards_suits,'stable'); % FCI - Index of the first card in a suit
+            no_of_cards_in_each_suit = diff([FCI' length(player.hand)+1]);
             five_of_a_kind=sum(no_of_cards_in_each_suit>=5);
             player.points=sum(points_jqka)+five_of_a_kind;
         end
