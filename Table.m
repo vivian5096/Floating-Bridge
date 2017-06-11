@@ -40,11 +40,13 @@ classdef Table <handle
             tb.all_texts = all_texts;
         end
         
-        function bidding_Process(tb,suit_name,display_bid)            
+        function bidding_Process(tb,suit_name,display_bid)
+            % UI handles
             score_text = tb.all_texts{2};
             message_text = tb.all_texts{4};
             player_text = tb.all_texts{1};
             win = tb.win_handle;
+            
             set(message_text,'string','The game is starting soon...');
             pause(5)
             set(display_bid,'visible','on');
@@ -59,36 +61,31 @@ classdef Table <handle
             %options=reshape(options,[1,size(options,1)*size(options,2)]);
 
             while no_of_pass<3
-                i=mod(counter,4);
-                if i==0
-                    i=4;
-                end
-                j=ceil(counter/4);
-                set(player_text(i),'BackgroundColor',[0,0,0.25])
-                pl_bids(j,i)=tb.players(i).place_Bid(pl_bids,tb);
-                if pl_bids(j,i)==0
+                i=mod(counter-1,4)+1;   % Player order
+                j=ceil(counter/4);      % Round number
+                set(player_text(i),'BackgroundColor',[0,0,0.25]);
+                player_bid = tb.players(i).place_Bid(pl_bids,tb);
+                if player_bid == 0
                     bid_name='pass';
-                else
-                    suitind=mod(pl_bids(j,i),5);
-                    if suitind==0
-                        suitind=5;
-                    end
-                    bid_name=[num2str(floor(pl_bids(j,i)/10)),' ',suit_name{suitind}];
-                end
-                set(score_text(i),'string',bid_name); pause(win.UserData.game_delay);
-                if pl_bids(j,i)==0
                     no_of_pass=no_of_pass+1;
                 else
-                    no_of_pass=0; tb.bid=pl_bids(j,i);
+                    suitind=mod(player_bid,10);
+                    bid_name=[num2str(floor(player_bid/10)),' ',suit_name{suitind}];
+                    no_of_pass = 0; 
+                    tb.bid = player_bid;
                     set(message_text,'string',bid_name);
-                    %options=options(find(options==tb.bid):end);
                 end
-                counter=counter+1;
+                % Store the bid
+                pl_bids(j,i) = player_bid;
+                set(score_text(i),'string',bid_name);
+                counter = counter+1;
+                pause(win.UserData.game_delay);   
                 set(player_text(i),'BackgroundColor',win.UserData.background_colour);
             end
-            [~,tb.declarer]=find(pl_bids==tb.bid);
-            name_Declarer(tb.players(tb.declarer));                                    %update role of player who is declarer
-            % update properties of table
+
+            tb.declarer = mod(i,4)+1;
+            name_Declarer(tb.players(tb.declarer)); %update role of player who is declarer
+            % Update properties of table
             j =dec2base(tb.bid,10) - '0';
             tb.trump_suit=j(2);
             tb.declarer_win_set=6+j(1);

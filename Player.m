@@ -77,7 +77,7 @@ classdef Player < handle
         function bid=place_Bid(player,pl_bid,table)
             current_bid = table.bid;
             win = table.win_handle;
-            
+            bid = 0;
             switch player.type
                 case 'randomAI'
                     bid=AI.getAction(player,1,current_bid,0.3);

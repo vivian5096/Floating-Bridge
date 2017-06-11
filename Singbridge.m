@@ -83,7 +83,7 @@ while continue_game==1
                 set(all_texts{4},'string','');                              % reset graphics
                 set(choice_button,'visible','off');
             end            
-            if  any(request_reshuffle)
+            if any(request_reshuffle)
                 for n=1:4
                     clear_Deck(player_hand_deck(n),disp_axes);
                 end
@@ -93,7 +93,7 @@ while continue_game==1
         
         % State 1: Bidding Process
         tb.state=1;
-        %first bidder is assigned randomly
+        % First bidder is assigned randomly
         bidding_Process(tb,suit_name,display_bid);
         
         set(display_bid,'visible','off');
