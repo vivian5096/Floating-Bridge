@@ -50,7 +50,7 @@ classdef Table <handle
             win = tb.win_handle;
             
             set(message_text,'string','The game is starting soon...');
-            pause(5)
+            pause(2)
             set(tb.display_bid,'visible','on');
             for n = 1:4
                 set(tb.bidding_buttons{n},'visible','on')
