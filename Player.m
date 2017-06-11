@@ -44,11 +44,11 @@ classdef Player < handle
             cards_suits = floor(cards_value/100);
             cards_num = mod(cards_value,100);
 
-            points_jqka = floor(cards_num/10).*mod(cards_num,10);
+            points_jqka = sum(floor(cards_num/10).*mod(cards_num,10));
             [~,FCI] = unique(cards_suits,'stable'); % FCI - Index of the first card in a suit
             no_of_cards_in_each_suit = diff([FCI' length(player.hand)+1]);
-            five_of_a_kind=sum(no_of_cards_in_each_suit>=5);
-            player.points=sum(points_jqka)+five_of_a_kind;
+            five_of_a_kind = sum(no_of_cards_in_each_suit>=5);
+            player.points = points_jqka+five_of_a_kind;
         end
         
         function request_reshuffle=check_Points(player,message_text,choice_button,win)
@@ -88,7 +88,7 @@ classdef Player < handle
                 otherwise
                     disp('Player type not valid')
             end
-            player.memory_bid=pl_bid;
+            player.memory_bid = pl_bid;
         end
         
         function name_Declarer(player)
@@ -105,9 +105,10 @@ classdef Player < handle
                 case 'randomAI'
                     card_selected=AI.getAction(player,2,table.trump_suit,all_cards);
                 case 'Human'
-                    set(bidsuit_button(1:4),'visible','on');
                     set(table.display_bid,'string','','visible','on');
-                    set(partner_button,'visible','on');set(call_button,'visible','on');
+                    set(bidsuit_button(1:4),'visible','on');
+                    set(partner_button,'visible','on');
+                    set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
                     card_selected=Human.partner(player,all_cards,table.win_handle,message_text);
                                 
@@ -122,8 +123,7 @@ classdef Player < handle
         end
         
         function identify_Role(player,partner_card,declarer)
-            got_card = any([player.hand.value]==partner_card.value);
-            if ~got_card
+            if ~any([player.hand.value]==partner_card.value)
                 player.role='Defender';
             else
                 player.role='Partner';
@@ -131,7 +131,7 @@ classdef Player < handle
             end
         end
         
-        function [card_played,selected_card_ind]=play_Card(player, round,tb,player_hand_deck,player_played_card)
+        function card_played = play_Card(player, round,tb,player_hand_deck,player_played_card)
             switch player.type
                 case 'randomAI'
                     card_played=AI.getAction(player, 3,round.leading_suit,tb);
@@ -141,13 +141,12 @@ classdef Player < handle
                     card_played=Vibot1.getAction(player,3,round.leading_suit,tb);
                 otherwise
                     disp('Player type not valid')
-            end            
-            selected_card_ind=find([player.hand.value]==card_played.value);
-            
+            end 
             % Update hand of player
-            player.hand=player.hand([player.hand.value]~=card_played.value);
+            selected_card_ind = find([player.hand.value]==card_played.value);
             player_hand_deck.selected_start_index = selected_card_ind;
             transfer_Selected_Cards(player_hand_deck,player_played_card);
+            player.hand = player.hand([player.hand.value]~=card_played.value);
         end
         
         function update_Players_Partners(pl,partner,defenders)

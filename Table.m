@@ -42,7 +42,7 @@ classdef Table <handle
         end
         
         % The entire bidding process
-        function bidding_Process(tb,suit_name)
+        function msg = bidding_Process(tb,suit_name)
             % UI handles
             score_text = tb.all_texts{2};
             message_text = tb.all_texts{4};
@@ -99,6 +99,10 @@ classdef Table <handle
                 set(tb.bidding_buttons{n},'visible','off')
             end 
             set(tb.display_bid,'visible','off');
+            msg =sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
+            set(message_text,'string',msg);
+            set(tb.all_texts{3}(tb.declarer),'string','Declarer');
+            set(tb.all_texts{2},'string',num2str(0));
         end
         
         % Call the partner

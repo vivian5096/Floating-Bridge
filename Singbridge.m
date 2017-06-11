@@ -94,28 +94,24 @@ while continue_game==1
         % State 1: Bidding Process
         tb.state=1;
         % First bidder is assigned randomly
-        bidding_Process(tb,suit_name);
-
-        msg1 =sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
-        set(all_texts{4},'string',msg1);
-        set(all_texts{3}(tb.declarer),'string','Declarer');
-        non_declarer=find([1 2 3 4]~=tb.declarer);
+        msg1 = bidding_Process(tb,suit_name);
         pause(1)
+        
         % State 2: Choose partner
         tb.state=2;
         call_Partner(tb,all_cards);
-        
+        non_declarer=find([1 2 3 4]~=tb.declarer); 
         msg2 =['Partner card is ',num_name{mod(tb.partner_card.value,100)-1},...
             ' ',suit_name{floor(tb.partner_card.value/100)}];
         msg3 = {msg1,msg2};
         set(all_texts{4},'string',msg3);
-        pause(1)
         % Non-bidder identify themselves
         for n=non_declarer
             identify_Role(tb.players(n),tb.partner_card,tb.declarer);
         end
+        pause(1)
         
-        % Start game
+        % State 3: Start game
         tb.state=3;
         set(win,'ButtonDownFcn',@check_clicked_deck)
         % Initialise 13 games
@@ -123,10 +119,9 @@ while continue_game==1
             game(n)=Game(n);
         end
         no_of_trick=1; % Game counter
-        game(no_of_trick).leader = first_Leader(tb);  % identify first leader
-        set(all_texts{2},'string',num2str(0));
+        game(no_of_trick).leader = first_Leader(tb);  % Identify first leader
         while no_of_trick<=13
-            winner=trick(tb,game(no_of_trick),player_hand_deck,player_played_card,msg3);
+            winner = trick(tb,game(no_of_trick),player_hand_deck,player_played_card,msg3);
             game(no_of_trick+1).leader = winner;
             tb.scores(winner)=tb.scores(winner)+1;
             set(all_texts{2}(winner),'string',num2str(tb.scores(winner)));
@@ -144,7 +139,7 @@ while continue_game==1
     end
     
     %ask player whether to continue game
-    set(choice_button(1),'visible','on');set(choice_button(2),'visible','on');
+    set(choice_button,'visible','on');
     uiwait(win);
     continue_game=win.UserData.decision;
 end
