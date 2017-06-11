@@ -227,16 +227,16 @@ classdef Table <handle
             switch method
                 case 1
                     valid=0;
-                    while valid==0
+                    while ~valid
                         shuf=input('Input card distribution that you want. [1-52] in a row vector');
                         if size(shuf,2)==52 && size(shuf,1)==1
                             if sort(shuf)~=cumsum(ones(1,52))
-                                valid=0;disp('Invalid input')
+                                disp('Invalid input')
                             else
                                 valid=1;
                             end
                         else
-                            valid=0; disp('Invalid input')
+                            disp('Invalid input')
                         end
                     end
                 otherwise

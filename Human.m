@@ -18,8 +18,8 @@ classdef Human
             valid =0;
             while ~valid
                 uiwait(win);
-                card_value_selected=win.UserData.callpartner;
-                if sum([pl.hand.value]==card_value_selected)>0
+                card_value_selected = win.UserData.callpartner;
+                if any([pl.hand.value]==card_value_selected)
                     set(message_text,'string','Dont choose yourself!');
                 else
                     valid=1;
