@@ -3,9 +3,14 @@ function seed=Singbridge()
 clc
 close all
 
-% default_size = [1366 768];
-% win_ratio = default_size/default_size(1);
-% win_size = default_size*0.8;
+%%% Alt Method to resizing, commented in %%%:
+%%% To allow resizing, create the entire UI based on a default size,
+%%% Then resize it later. Not used here.
+%%% default_size = [1366 768];
+%%% win_ratio = default_size/default_size(1);
+%%% win_size = default_size*0.8;
+
+% Get information about the screen
 scrsz = get(0,'ScreenSize');
 win_ratio = scrsz(3:4)/scrsz(3);
 win_size = scrsz(3:4)*0.8;
@@ -30,7 +35,7 @@ all_cards = Table.init_Cards();
 suit_name={'Clubs','Diamonds','Hearts','Spades','No Trump'};
 num_name={'2','3','4','5','6','7','8','9','10','J','Q','K','A'};
 
-% Prepare playfield and drawing axes
+% Prepare drawing axes and playfield, in that order
 disp_axes = axes('Parent',win,'Position',[0 0 1 1]);
 [player_hand_deck,player_played_card,playfield_size,midfield_size] = ...
     prepare_playfield(all_cards,win_ratio,~see_all_deck);
@@ -39,7 +44,7 @@ set(disp_axes,'Xlim',[0 playfield_size(1)],'Ylim',[0 playfield_size(2)],...
 
 % Initialise players
 % Can choose 'Human' or 'randomAI' or 'Vibot1'
-pl(1) = Player('randomAI',1,[]);
+pl(1) = Player('Human',1,[]);
 pl(2) = Player('Vibot1',2,[]);
 pl(3) = Player('randomAI',3,[]);
 pl(4) = Player('Vibot1',4,[]);
@@ -50,31 +55,32 @@ pl(4) = Player('Vibot1',4,[]);
     text_colour,role_text_colour,font_size,player_played_card);
 draw_playfield(player_hand_deck,player_played_card)
 
-% Get information about the screen
-% The simple way to aloow different screen
-% scrsz = get(0,'ScreenSize');
-% scrsz = [1 1 720 576];
-% win_size = scrsz(3:4)*0.8;
-% set(win,'Position',[scrsz(3:4)-win_size*1.05 win_size],'Visible','on');
+%%% Resize it here
+%%% scrsz = get(0,'ScreenSize');
+%%% scrsz = [1 1 720 576];
+%%% win_size = scrsz(3:4)*0.8;
+%%% set(win,'Position',[scrsz(3:4)-win_size*1.05 win_size]);
+
 set(win,'Visible','on');
+
 % Initialise Table and Games
-tb=Table(pl,0,[0 0 0 0],win,bidding_buttons,all_texts,display_bid);
+tb=Table(pl,0,[0 0 0 0],win,bidding_buttons,all_texts);
 for n = 1:14
     game(n)=Game(n);
 end
 
 %% Game Loop
 continue_game=1;
-while continue_game==1
+while continue_game
     seed=rng;
     try
-        %Reset Table
         reset_Table(tb);
         
-        % state 0: shuffling, dealing out cards & request for reshuffle
+    % This card dealing thing can probably go to Table, but I'm not too bothered
+        %% State 0: shuffling, dealing out cards & request for reshuffle
         no_times_dealt=0; request_reshuffle=[1;1;1;1];
         while any(request_reshuffle)
-            Decks = Table.shuffle(all_cards);%(all_cards,1) to manually allocate the cards % autoshuffle cards
+            Decks = Table.shuffle(all_cards); % Put 1 as second input to manually allocate the cards, else autoshuffle cards
             no_times_dealt = no_times_dealt+1;
             for n=1:4
                 update_Hand(tb.players(n),Decks(n,:));                                  % Distribute cards
@@ -100,18 +106,16 @@ while continue_game==1
                 end
             end
         end
-        
         msg = fit_UI_text(message_text,{'The game is starting soon...'});
         set(message_text,'string',msg);
         pause(2)
-        % State 1: Bidding Process
-        tb.state=1;
-        % First bidder is assigned randomly
         
+        %% State 1: Bidding Process
+        tb.state=1;
         msg1 = bidding_Process(tb,suit_name);
         pause(1)
         
-        % State 2: Choose partner
+        %% State 2: Choose partner
         tb.state=2;
         call_Partner(tb,all_cards);
         non_declarer=find([1 2 3 4]~=tb.declarer);
@@ -126,14 +130,14 @@ while continue_game==1
         end
         pause(1)
         
-        % State 3: Start game
+        %% State 3: Start game
         tb.state=3;
         set(win,'ButtonDownFcn',@check_clicked_deck)
         % Reset the 13 games
         for n = 1:14
             reset_Game(game(n));
         end
-        no_of_trick = 1; % Game counter
+        no_of_trick = 1;
         game(no_of_trick).leader = first_Leader(tb);  % Identify first leader
         
         while no_of_trick<=13
@@ -142,25 +146,27 @@ while continue_game==1
             no_of_trick=no_of_trick+1;
         end
         
-        % declare winning team
+        %% End Game: Declare winning team
         [winning_team, no_set_won_above_bid]=who_Win(tb);
         msg3 = sprintf('Winning team is %s. No of set won above bid is %d \n',winning_team, no_set_won_above_bid);
         msg3 = fit_UI_text(message_text,{msg3,'Continue game?'});
         set(message_text,'string',msg3)
         set(win,'ButtonDownFcn','')
+    
     catch ME
         msg = getReport(ME); disp(msg);
         break
     end
     
-    %ask player whether to continue game
+    %% Ask player whether to continue game
     set(choice_button,'visible','on');
     uiwait(win);
     continue_game=win.UserData.decision;
 end
 close all
+
 %% GUI functions
-% Prepare the playing field dimension with the card holders
+    % Prepare the playing field dimension with the card holders
     function [player_hand_deck,player_played_card,playfield_size,midfield_size] = prepare_playfield(cards,win_ratio,see_all_deck)
         card_size = size(cards(1).get_Card_Image('front'));
         card_width = card_size(2);
@@ -169,6 +175,7 @@ close all
         border_offset = 10;
         playfield_width = round(card_width*15+2*border_offset);
         playfield_size = round([playfield_width playfield_width].*win_ratio);
+        % Midfield is the field without the cards
         midfield_offset = [card_width card_height]+ border_offset+card_gap;
         midfield_size = [midfield_offset playfield_size-midfield_offset*2];
         
@@ -180,32 +187,33 @@ close all
         
         % Initialise the card holders
         for i = 1:4
+            % Hand deck uses the playfield dimensions
             player_hand_deck(i)=cardHolder(...
                 start_x + card_width*(i~=2) + (card_width+card_hoffset*12)*(i==4),...
                 start_y + card_height + (card_voffset*12+card_height*(1+mod(i,2)))*(i~=1),...
                 [],card_width,card_height,card_hoffset*mod(i,2)+card_voffset*mod(i-1,2),...
                 mod(i,2),-1,0,see_all_deck,0,disp_axes);
-            
+            % Hand deck uses the midfield dimensions
             player_played_card(i)=cardHolder(...
                 midfield_size(1) + (midfield_size(3) - card_width)/2* (1-sin(pi/2*(i-1))),...
                 midfield_size(2) + midfield_size(4)/2 * (1-cos(pi/2*(i-1)))...
                 + card_height/2 * (1+cos(pi/2*(i-1))),...
                 [],card_width,card_height,card_hoffset,'horizontal',-1,0,0,0,disp_axes);
-            
         end
     end
-%function to draw the uicontrols
+    % Function to draw the uicontrols
     function [all_texts,bidding_buttons,choice_button,display_bid,message_text]=draw_Uicontrols(...
             all_cards,pl,playfield_size,midfield_size,background_colour,...
             text_colour,role_text_colour,font_size,player_played_card)
+        %%% Note: all dimensions are NORMALISED based on playfield size
         
         card_size = size(all_cards(1).get_Card_Image('front'));
         card_width = card_size(2)/playfield_size(1);
         card_height = card_size(1)/playfield_size(2);
-        
         midfield_size_norm = midfield_size./[playfield_size playfield_size];
-        % All components are normalised based on playfield size
-        % Player, Score, Role Texts are positioned based on the played cardHolder
+        
+        % Player, Score, Role Texts are positioned based on the
+        % player_played_card cardHolder position
         text_w = (midfield_size_norm(3)-card_width)/2/4;
         text_dim = [text_w text_w/2];
         for i = 1:4
@@ -228,47 +236,49 @@ close all
         set([player_text score_text role_text],'FontUnits','normalized','BackgroundColor',...
             background_colour,'ForegroundColor',text_colour,'FontSize',0.5);
         
+        % Create message text at the centre
         message_size = [midfield_size_norm(3)-2*(card_width*1.2) midfield_size_norm(4)-2*(card_height*1.2)];
         ui_pos = [midfield_size_norm(1:2)+(midfield_size_norm(3:4)-message_size)/2  message_size];
         message_text=uicontrol('style','text','Units','Normalized',...
-            'position',ui_pos,'BackgroundColor',[0 0 0],'FontUnits','Normalized',...
+            'position',ui_pos,'BackgroundColor',background_colour,'FontUnits','Normalized',...
             'ForegroundColor',[1 1 1],'FontSize',0.5);
-        all_texts = {player_text,score_text,role_text,message_text};
         
-        button_w = text_w;
+        % The display_bid position is based on first player player_played_card cardHolder
+        refx = player_played_card(1).x/playfield_size(1);
+        refy = player_played_card(1).y/playfield_size(2)-text_dim(2)*0.8;
+        ui_pos = [refx refy text_dim]-[text_w+0.001+(card_width*0.2) text_dim(2) 0 0];
+        display_bid=uicontrol('style','text','string','','Units','Normalized',...
+            'position',ui_pos,'FontUnits','normalized','BackgroundColor',[0 0 0],...
+            'ForegroundColor',[1 1 1],'FontSize',font_size);
+        
+        all_texts = {player_text,score_text,role_text,message_text,display_bid};
+        
+        % The call,bid, pass buttons have same dimension as text 
         ui_pos = player_text(1).Position+[text_w+0.001 0 0 0];
         call_button=uicontrol('style','pushbutton','string','CALL','Units','Normalized',...
             'position',ui_pos,'callback',@partner_Called);
         bid_button=uicontrol('style','pushbutton','string','BID','Units','Normalized',...
             'position',ui_pos,'callback',@bid_Entered);
-        
         ui_pos = ui_pos+[text_w 0 0 0];
         pass_button=uicontrol('style','pushbutton','string','PASS','Units','Normalized',...
             'position',ui_pos,'callback',@bid_Passed);
         
-        refx = player_played_card(1).x/playfield_size(1);
-        refy = player_played_card(1).y/playfield_size(2)-text_dim(2)*0.8;
-        ui_pos = [refx refy text_dim]-[text_w+0.001+(card_width*0.2) 0 0 0];
-        display_bid=uicontrol('style','text','string','','Units','Normalized',...
-            'position',ui_pos,'FontUnits','normalized',...
-            'BackgroundColor',[0 0 0],'ForegroundColor',[1 1 1],'FontSize',font_size);
-        
+        % These card selection buttons is based on the gap between the two 
+        % player_played_card cardHolder beside the first player's
         button_w = (midfield_size_norm(3)-card_width)/2/7;
-        button_h = button_w/2;
-        ypos =  midfield_size_norm(2)+card_height*1.2;
+        button_h = button_w;
+        ypos =  midfield_size_norm(2)+card_height*1.1;
         for i=1:7
             ui_pos = [midfield_size_norm(1)+button_w*(i-1) ypos button_w button_h];
             bidnum_button(i)=uicontrol('style','pushbutton','string',num2str(i),'Units','Normalized',...
                 'position',ui_pos,'callback',{@display_Bidnum,i});
         end
-        
         button_w = (midfield_size_norm(3)-card_width*1.2)/2/5;
         for i=1:5
             ui_pos = [midfield_size_norm(1)+ (midfield_size_norm(3)+card_width)/2+button_w*(i-1) ypos button_w button_h];
             bidsuit_button(i)=uicontrol('style','pushbutton','string',suit_name(i),'Units','Normalized',...
                 'position',ui_pos,'callback',{@display_Bidsuit,suit_name{i}});
         end
-        
         button_w = (midfield_size_norm(3)-card_width)/2/13;
         for i=1:13
             ui_pos = [midfield_size_norm(1)+button_w*(i-1) ypos button_w button_h];
@@ -276,6 +286,7 @@ close all
                 'position',ui_pos,'callback',{@display_Partner_Cardnum,i});
         end
         
+        % Choices button is placed above first player player_played_card
         ypos = player_played_card(1).y *1.05/playfield_size(2);
         ui_pos = [midfield_size_norm(1)+(midfield_size_norm(3)-card_width*1.2)/2-button_w,ypos,button_w,button_h];
         choice_button(1)=uicontrol('style','pushbutton','string','Yes','Units','Normalized',...
@@ -284,6 +295,7 @@ close all
         choice_button(2)=uicontrol('style','pushbutton','string','No','Units','Normalized',...
             'position',ui_pos,'callback',{@choice,0});
         
+        % Set all the button not visible
         set([bidnum_button bidsuit_button partner_button],'visible','off')
         set([call_button bid_button pass_button display_bid choice_button], 'Visible','off');
         
@@ -291,9 +303,9 @@ close all
             bid_button,pass_button,partner_button,call_button};
     end
 
-% Draw the play field
+    % Draw the play field
     function draw_playfield(player_hand_deck,player_played_card)
-        cla(disp_axes);     % Clear the play field axes, not that it is needed since it is only called during initialisation
+        cla(disp_axes);     % Clear the playfield axes
         for i = 1:length(player_hand_deck)
             player_hand_deck(i).update_Deck_Graphics();
         end
@@ -303,19 +315,23 @@ close all
             player_played_card(i).update_Deck_Graphics();
         end
     end
-
+    
+    % Function to fit a given text into a UI
     function newtext = fit_UI_text(UI,text)
         pos = get(UI,'Position');
         ft = get(UI,'FontSize');
+        % Do a text wrap first
         newtext = textwrap(UI, text);
         set(UI,'string',newtext);
-        for FontSize = ft:-0.02:0.01
+        % Iterate the font size until a suitable size is obtained
+        for FontSize = ft:-0.05:0.01
             set(UI, 'FontSize', FontSize);
             Extent = get(UI, 'Extent');
             if Extent(4) < pos(4)
-                break; % Escape loop: for FontSize
+                break;
             end
         end
+        % Do a text wrap one more time
         newtext = textwrap(UI, text);
     end
 

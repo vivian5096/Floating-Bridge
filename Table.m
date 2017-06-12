@@ -18,14 +18,13 @@ classdef Table <handle
         defenders
         % UI handles
         win_handle          % The handle of the window which the game is on
-        bidding_buttons
-        all_texts
-        display_bid
+        bidding_buttons     % 1 - bidsuit, 2 - bidnum, 3 - bid, 4 - pass, 5 - partner, 6 - call
+        all_texts           % 1 - player, 2 - score, 3 - role, 4 - message 5 - display_bid;
     end
     
     methods
         % Initialisation
-        function tb=Table(players,state,scores,win,bidding_buttons,all_texts,display_bid)
+        function tb=Table(players,state,scores,win,bidding_buttons,all_texts)
             tb.players=players;
             tb.state=state;
             tb.bid=0;
@@ -38,24 +37,23 @@ classdef Table <handle
             tb.win_handle = win;
             tb.bidding_buttons = bidding_buttons;
             tb.all_texts = all_texts;
-            tb.display_bid = display_bid;
         end
         
         % The entire bidding process
         function msg = bidding_Process(tb,suit_name)
-            % UI handles
+            % UI handles naming
             score_text = tb.all_texts{2};
             message_text = tb.all_texts{4};
             player_text = tb.all_texts{1};
             win = tb.win_handle;
             
-            set(tb.display_bid,'visible','on');
+            set(tb.all_texts{5},'visible','on');
             for n = 1:4
                 set(tb.bidding_buttons{n},'visible','on')
             end
             set(message_text,'string','Start bidding');
             pause(win.UserData.game_delay);
-            first_bidder = randi(4);
+            first_bidder = randi(4);    % First bidder is assigned randomly
             counter=first_bidder; no_of_pass=0; tb.bid=0; pl_bids=zeros(7,4);
             %options=cumsum(ones(5,7))+ cumsum(ones(7,5)*10)';
             %options=reshape(options,[1,size(options,1)*size(options,2)]);
@@ -96,7 +94,7 @@ classdef Table <handle
             for n = 1:4
                 set(tb.bidding_buttons{n},'visible','off')
             end 
-            set(tb.display_bid,'visible','off');
+            set(tb.all_texts{5},'visible','off');
             msg =sprintf('Bid is %d and Trump suit is %s',floor(tb.bid/10), suit_name{tb.trump_suit});
             set(message_text,'string',msg);
             set(tb.all_texts{3}(tb.declarer),'string','Declarer');
@@ -106,8 +104,8 @@ classdef Table <handle
         % Call the partner
         function call_Partner(tb,all_cards)            
             tb.partner_card=tb.players(tb.declarer).choose_Partner(all_cards,tb);
-            set(tb.display_bid,'visible','off');
-            set(tb.display_bid,'string','');
+            set(tb.all_texts{5},'visible','off');
+            set(tb.all_texts{5},'string','');
         end
         % Determine the leader
         function leader=first_Leader(tb)
