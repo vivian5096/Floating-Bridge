@@ -7,7 +7,7 @@ close all
 % win_ratio = default_size/default_size(1);
 % win_size = default_size*0.8;
 scrsz = get(0,'ScreenSize');
-win_ratio = scrsz(3:4)/scrsz(3)-[0.0 0];
+win_ratio = scrsz(3:4)/scrsz(3);
 win_size = scrsz(3:4)*0.8;
 
 % Set background colour, text colour and font size
@@ -45,7 +45,7 @@ pl(3) = Player('randomAI',3,[]);
 pl(4) = Player('Vibot1',4,[]);
 
 % Draw textboxes to display player name, score,role and message
-[all_texts,bidding_buttons,choice_button,display_bid]=...
+[all_texts,bidding_buttons,choice_button,display_bid,message_text]=...
     draw_Uicontrols(all_cards,pl,playfield_size,midfield_size,background_colour,...
     text_colour,role_text_colour,font_size,player_played_card);
 draw_playfield(player_hand_deck,player_played_card)
@@ -84,14 +84,14 @@ while continue_game==1
                 determine_Point(tb.players(n));                                         % all players determine points
             end
             if no_times_dealt>3                                             % can only accept reshuffle request 3 times
-                set(all_texts{4},'string','Reshuffled 3 times. No longer accepting reshuffle request!');
+                set(message_text,'string','Reshuffled 3 times. No longer accepting reshuffle request!');
                 pause(game_delay);
                 break
             end
             for n=1:4
                 request_reshuffle(n)=check_Points(tb.players(n),...         % ask for reshuffle requests
-                    all_texts{4},choice_button,win);
-                set(all_texts{4},'string','');                              % reset graphics
+                    message_text,choice_button,win);
+                set(message_text,'string','');                              % reset graphics
                 set(choice_button,'visible','off');
             end
             if any(request_reshuffle)
@@ -100,11 +100,14 @@ while continue_game==1
                 end
             end
         end
-        set(all_texts{4},'string','');
         
+        msg = fit_UI_text(message_text,{'The game is starting soon...'});
+        set(message_text,'string',msg);
+        pause(2)
         % State 1: Bidding Process
         tb.state=1;
         % First bidder is assigned randomly
+        
         msg1 = bidding_Process(tb,suit_name);
         pause(1)
         
@@ -115,7 +118,8 @@ while continue_game==1
         msg2 =['Partner card is ',num_name{mod(tb.partner_card.value,100)-1},...
             ' ',suit_name{floor(tb.partner_card.value/100)}];
         msg3 = {msg1,msg2};
-        set(all_texts{4},'string',msg3);
+        msg3 = fit_UI_text(message_text,msg3);
+        set(message_text,'string',msg3);
         % Non-bidder identify themselves
         for n = non_declarer
             identify_Role(tb.players(n),tb.partner_card,tb.declarer);
@@ -131,18 +135,18 @@ while continue_game==1
         end
         no_of_trick = 1; % Game counter
         game(no_of_trick).leader = first_Leader(tb);  % Identify first leader
+        
         while no_of_trick<=13
             winner = trick(tb,game(no_of_trick),player_hand_deck,player_played_card,msg3);
             game(no_of_trick+1).leader = winner;
-            tb.scores(winner)=tb.scores(winner)+1;
-            set(all_texts{2}(winner),'string',num2str(tb.scores(winner)));
             no_of_trick=no_of_trick+1;
         end
         
         % declare winning team
         [winning_team, no_set_won_above_bid]=who_Win(tb);
-        msg3=sprintf('Winning team is %s. No of set won above bid is %d \n',winning_team, no_set_won_above_bid);
-        set(all_texts{4},'string',{msg3,'Continue game?'},'fontsize',0.2)
+        msg3 = sprintf('Winning team is %s. No of set won above bid is %d \n',winning_team, no_set_won_above_bid);
+        msg3 = fit_UI_text(message_text,{msg3,'Continue game?'});
+        set(message_text,'string',msg3)
         set(win,'ButtonDownFcn','')
     catch ME
         msg = getReport(ME); disp(msg);
@@ -191,7 +195,7 @@ close all
         end
     end
 %function to draw the uicontrols
-    function [all_texts,bidding_buttons,choice_button,display_bid]=draw_Uicontrols(...
+    function [all_texts,bidding_buttons,choice_button,display_bid,message_text]=draw_Uicontrols(...
             all_cards,pl,playfield_size,midfield_size,background_colour,...
             text_colour,role_text_colour,font_size,player_played_card)
         
@@ -227,14 +231,11 @@ close all
         message_size = [midfield_size_norm(3)-2*(card_width*1.2) midfield_size_norm(4)-2*(card_height*1.2)];
         ui_pos = [midfield_size_norm(1:2)+(midfield_size_norm(3:4)-message_size)/2  message_size];
         message_text=uicontrol('style','text','Units','Normalized',...
-            'position',ui_pos,...
-            'FontUnits','normalized','BackgroundColor',background_colour,...
+            'position',ui_pos,'BackgroundColor',[0 0 0],'FontUnits','Normalized',...
             'ForegroundColor',[1 1 1],'FontSize',0.5);
-        
         all_texts = {player_text,score_text,role_text,message_text};
         
         button_w = text_w;
-        button_h = button_w/2;
         ui_pos = player_text(1).Position+[text_w+0.001 0 0 0];
         call_button=uicontrol('style','pushbutton','string','CALL','Units','Normalized',...
             'position',ui_pos,'callback',@partner_Called);
@@ -301,6 +302,21 @@ close all
             player_played_card(i).render_deck_outline();
             player_played_card(i).update_Deck_Graphics();
         end
+    end
+
+    function newtext = fit_UI_text(UI,text)
+        pos = get(UI,'Position');
+        ft = get(UI,'FontSize');
+        newtext = textwrap(UI, text);
+        set(UI,'string',newtext);
+        for FontSize = ft:-0.02:0.01
+            set(UI, 'FontSize', FontSize);
+            Extent = get(UI, 'Extent');
+            if Extent(4) < pos(4)
+                break; % Escape loop: for FontSize
+            end
+        end
+        newtext = textwrap(UI, text);
     end
 
 %% Callback functions

@@ -49,8 +49,6 @@ classdef Table <handle
             player_text = tb.all_texts{1};
             win = tb.win_handle;
             
-            set(message_text,'string','The game is starting soon...');
-            pause(2)
             set(tb.display_bid,'visible','on');
             for n = 1:4
                 set(tb.bidding_buttons{n},'visible','on')
@@ -131,6 +129,7 @@ classdef Table <handle
             
             counter=game.leader; game.turn=1;
             set(message_text,'string',msg);
+           
             while counter<(game.leader+4)
                 game.players_turn=mod(counter-1,4)+1;
                 set(player_text(game.players_turn),'BackgroundColor',[0,0,0.25])
@@ -171,10 +170,13 @@ classdef Table <handle
                 follow_suit_played=game.cards_played(suit_played == game.leading_suit);
                 next_leader = find([game.cards_played.value]==max([follow_suit_played.value]));
             end
+            
             for n=1:4
                 update_Memory(tb.players(n),game);
                 clear_Deck(player_played_card(n));
             end
+            tb.scores(next_leader)=tb.scores(next_leader)+1;
+            set(tb.all_texts{2}(next_leader),'string',num2str(tb.scores(next_leader)));
         end
         
         function [winning_team, no_set_won_above_bid]=who_Win(tb)
