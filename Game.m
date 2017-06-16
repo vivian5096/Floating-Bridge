@@ -18,5 +18,12 @@ classdef Game <handle
             round.players_turn=0;%player_turn;
             round.winner=0;%winner;
         end
+        function reset_Game(round)
+            round.leader=0;%leader;
+            round.leading_suit=0;%leading_suit;
+            round.cards_played=[Cards(1,1,1) Cards(1,1,1) Cards(1,1,1) Cards(1,1,1)];%cards_played;
+            round.players_turn=0;%player_turn;
+            round.winner=0;%winner;
+        end
     end
 end

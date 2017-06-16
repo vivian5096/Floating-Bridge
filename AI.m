@@ -70,7 +70,6 @@ classdef AI
                             end
                         end
                     end
-                    %disp(cardnum_selected);input('so what did this dude select huh?');
                     action=var2([var2.value]==cardnum_selected);
                 case 3
                     tb=var2; leading_suit=var1;

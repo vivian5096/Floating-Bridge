@@ -1,6 +1,6 @@
 classdef Player < handle
     properties (SetAccess = private)
-        num %which player num are you?
+        num % which player num are you?
         type
         hand        
         role
@@ -43,26 +43,23 @@ classdef Player < handle
             cards_value = [player.hand.value];
             cards_suits = floor(cards_value/100);
             cards_num = mod(cards_value,100);
-            points_jqka = zeros(1,4);
-            for i=1:4
-                points_jqka(i)=sum(cards_num==10+i)*i;
-            end
-            no_of_cards_in_each_suit = zeros(1,4);
-            for n=1:4
-                no_of_cards_in_each_suit(n)=sum(cards_suits==n);
-            end
-            five_of_a_kind=sum(no_of_cards_in_each_suit>=5);
-            player.points=sum(points_jqka)+five_of_a_kind;
+
+            points_jqka = sum(floor(cards_num/10).*mod(cards_num,10));
+            [~,FCI] = unique(cards_suits,'stable'); % FCI - Index of the first card in a suit
+            no_of_cards_in_each_suit = diff([FCI' length(player.hand)+1]);
+            five_of_a_kind = sum(no_of_cards_in_each_suit>=5);
+            player.points = points_jqka+five_of_a_kind;
         end
         
         function request_reshuffle=check_Points(player,message_text,choice_button,win)
+            request_reshuffle=0;
             if player.points<4
                 switch player.type
                     case 'randomAI'
                         request_reshuffle=AI.getAction(player,0);
                     case 'Human'
                         set(message_text,'string','Do you want to request for reshuffle?');
-                        set(choice_button(1),'visible','on');set(choice_button(2),'visible','on');
+                        set(choice_button,'visible','on');
                         uiwait(win);
                         request_reshuffle=win.UserData.decision;
                     case 'Vibot1'
@@ -70,48 +67,54 @@ classdef Player < handle
                     otherwise
                         disp('Player type not valid')
                 end
-            else
-                request_reshuffle=0;
             end
-            if request_reshuffle==1
+            if (request_reshuffle)
                 set(message_text,'string',['Player ',num2str(player.num),' requested for reshuffle']);
+                pause(1);
             end
         end
         
-        function bid=place_Bid(player,current_bid,pl_bid,win,bidsuit_button,...
-                bidnum_button,display_bidnum,display_bidsuit,bid_button,pass_button)
+        function bid=place_Bid(player,pl_bid,table)
+            current_bid = table.bid;
+            win = table.win_handle;
+            bid = 0;
             switch player.type
                 case 'randomAI'
                     bid=AI.getAction(player,1,current_bid,0.3);
                 case 'Human'
-                    set(bidsuit_button,'visible','on');set(bidnum_button,'visible','on');
-                    set(bid_button,'visible','on');set(pass_button,'visible','on');
-                    set(display_bidnum,'visible','on');set(display_bidsuit,'visible','on');
                     bid=Human.bet(current_bid,pl_bid,win);
                 case 'Vibot1'
                     bid=Vibot1.getAction(player,1,current_bid,0.3);
                 otherwise
                     disp('Player type not valid')
             end
-            player.memory_bid=pl_bid;
+            player.memory_bid = pl_bid;
         end
         
         function name_Declarer(player)
             player.role='Declarer';
         end
         
-        function card_selected=choose_Partner(player,all_cards,table,win,message_text,partner_button,...
-                call_button,bidsuit_button,display_bidnum,display_bidsuit)
+        function card_selected=choose_Partner(player,all_cards,table)
+            partner_button = table.bidding_buttons{5};
+            call_button = table.bidding_buttons{6};
+            bidsuit_button = table.bidding_buttons{1};
+            message_text = table.all_texts{4};
+            
             switch player.type
                 case 'randomAI'
                     card_selected=AI.getAction(player,2,table.trump_suit,all_cards);
                 case 'Human'
+                    set(table.all_texts{5},'string','','visible','on');
                     set(bidsuit_button(1:4),'visible','on');
-                    set(display_bidnum,'string',''); set(display_bidsuit,'string','');
-                    set(display_bidnum,'visible','on'); set(display_bidsuit,'visible','on');
-                    set(partner_button,'visible','on');set(call_button,'visible','on');
+                    set(partner_button,'visible','on');
+                    set(call_button,'visible','on');
                     set(message_text,'string','Choose your partner');
-                    card_selected=Human.partner(player,all_cards,win,message_text);
+                    card_selected=Human.partner(player,all_cards,table.win_handle,message_text);
+                                
+                    set(bidsuit_button,'visible','off');
+                    set(partner_button,'visible','off');
+                    set(call_button,'visible','off');
                 case 'Vibot1'
                     card_selected=Vibot1.getAction(player,2,table.trump_suit,all_cards);
                 otherwise
@@ -120,8 +123,7 @@ classdef Player < handle
         end
         
         function identify_Role(player,partner_card,declarer)
-            got_card=[player.hand.value]==partner_card.value;
-            if got_card ==0
+            if ~any([player.hand.value]==partner_card.value)
                 player.role='Defender';
             else
                 player.role='Partner';
@@ -129,21 +131,22 @@ classdef Player < handle
             end
         end
         
-        function [card_played,selected_card_ind]=play_Card(player, round,tb,win,player_hand_deck)
+        function card_played = play_Card(player, round,tb,player_hand_deck,player_played_card)
             switch player.type
                 case 'randomAI'
                     card_played=AI.getAction(player, 3,round.leading_suit,tb);
                 case 'Human'
-                    card_played=Human.select_Card(player, round.leading_suit,tb,win,player_hand_deck);
+                    card_played=Human.select_Card(player, round.leading_suit,tb,player_hand_deck);
                 case 'Vibot1'
                     card_played=Vibot1.getAction(player,3,round.leading_suit,tb);
                 otherwise
                     disp('Player type not valid')
-            end            
-            selected_card_ind=find([player.hand.value]==card_played.value);
-            % update hand of player by removing the played card
-            index=find([player.hand.value]~=card_played.value);
-            player.hand=player.hand(index);
+            end 
+            % Update hand of player
+            selected_card_ind = find([player.hand.value]==card_played.value);
+            player_hand_deck.selected_start_index = selected_card_ind;
+            transfer_Selected_Cards(player_hand_deck,player_played_card);
+            player.hand = player.hand([player.hand.value]~=card_played.value);
         end
         
         function update_Players_Partners(pl,partner,defenders)
