@@ -20,7 +20,7 @@ background_colour=[0 0.2 0];
 text_colour=[1 0.713725 0.756863];
 role_text_colour=[0.12549 0.698039 0.666667];
 font_size=0.5;
-see_all_deck = 0;
+see_all_deck = 1;
 
 % Construct the window
 win = figure('ToolBar','none','Name','Floating Bridge',...
@@ -85,7 +85,9 @@ while continue_game
             for n=1:4
                 update_Hand(tb.players(n),Decks(n,:));                                  % Distribute cards
                 append_Cards(player_hand_deck(n),Decks(n,:));                           % Update cardholder
-                player_hand_deck(n).always_hidden = ~strcmp(tb.players(n).type,'Human');% only show human player's card
+                if ~see_all_deck
+                    player_hand_deck(n).always_hidden = ~strcmp(tb.players(n).type,'Human');% only show human player's card
+                end
                 update_Deck_Graphics(player_hand_deck(n));                              % Update graphics
                 determine_Point(tb.players(n));                                         % all players determine points
             end

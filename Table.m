@@ -193,6 +193,9 @@ classdef Table <handle
             tb.state = 0; 
             tb.scores = [0 0 0 0];
             tb.trump_broken = 0;
+            for i = tb.players
+                i.reset_Memory();
+            end
             % Reset graphics
             for n = 2:4
                 set(tb.all_texts{n},'string','');
