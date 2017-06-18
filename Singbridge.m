@@ -93,7 +93,7 @@ while continue_game
             end
             if no_times_dealt>3                                             % can only accept reshuffle request 3 times
                 set(message_text,'string','Reshuffled 3 times. No longer accepting reshuffle request!');
-                pause(game_delay);
+                pause(1);
                 break
             end
             for n=1:4
