@@ -9,6 +9,9 @@ classdef Player < handle
         % Memory of AI player
         memory_bid
         memory_cards_played
+        memory_player_suits
+        memory_remaining_cards
+        memory_highest_cards
         % Belief of AI
         belief_partner
         belief_carddist
@@ -33,6 +36,11 @@ classdef Player < handle
             pl.memory_cards_played=repmat([Cards(1,1,1) Cards(1,1,1) Cards(1,1,1) Cards(1,1,1)],13,1);
             pl.belief_partner=zeros(1,4);
             pl.belief_carddist=zeros(4,13,4);
+            pl.memory_player_suits = ones(4,4);
+            pl.memory_remaining_cards = zeros(13,4);
+            for i = 1:4
+                pl.memory_remaining_cards(:,i) = (cumsum(ones(1,13))+1)';
+            end
         end
         
         function update_Hand(pl,hand)
@@ -138,7 +146,7 @@ classdef Player < handle
                 case 'Human'
                     card_played=Human.select_Card(player, round.leading_suit,tb,player_hand_deck);
                 case 'Vibot1'
-                    card_played=Vibot1.getAction(player,3,round.leading_suit,tb);
+                    card_played=Vibot1.getAction(player,3,round,tb);
                 otherwise
                     disp('Player type not valid')
             end 
@@ -162,6 +170,30 @@ classdef Player < handle
         
         function update_Memory(player, round)
             player.memory_cards_played(round.trick_no,:)=round.cards_played;
+            if strcmp(player.type,'Vibot1') % Only applies to Vibot1
+                disp('Recording play')
+                cards_played = [round.cards_played.value];
+                suits = floor(cards_played/100);
+                nums = mod(cards_played,100);
+                player.memory_player_suits(suits ~= round.leading_suit,round.leading_suit) = 0;
+                for i = 1:length(cards_played)
+                    player.memory_remaining_cards(nums(i)-1,suits(i)) = 0;
+                end
+                disp(player.memory_player_suits);
+                disp(player.memory_remaining_cards);
+                if  (player.partner)
+                    disp('Display partner play')
+                    disp(player.memory_player_suits(player.partner,:));
+                end
+            end
+        end
+        
+        function reset_Memory(player)
+            player.partner = 0;
+            player.memory_player_suits = ones(4,4);
+            for i = 1:4
+                player.memory_remaining_cards(:,i) = (cumsum(ones(1,13))+1)';
+            end
         end
     end
 end
