@@ -10,6 +10,8 @@ classdef Player < handle
         memory_bid
         memory_cards_played
         memory_player_suits
+        memory_remaining_cards
+        memory_highest_cards
         % Belief of AI
         belief_partner
         belief_carddist
@@ -35,6 +37,10 @@ classdef Player < handle
             pl.belief_partner=zeros(1,4);
             pl.belief_carddist=zeros(4,13,4);
             pl.memory_player_suits = ones(4,4);
+            pl.memory_remaining_cards = zeros(13,4);
+            for i = 1:4
+                pl.memory_remaining_cards(:,i) = (cumsum(ones(1,13))+1)';
+            end
         end
         
         function update_Hand(pl,hand)
@@ -164,12 +170,17 @@ classdef Player < handle
         
         function update_Memory(player, round)
             player.memory_cards_played(round.trick_no,:)=round.cards_played;
-            if strcmp(player.type,'Vibot1') % Know partner
+            if strcmp(player.type,'Vibot1') % Only applies to Vibot1
                 disp('Recording play')
                 cards_played = [round.cards_played.value];
-                suit = floor(cards_played/100);
-                player.memory_player_suits(suit ~= round.leading_suit,round.leading_suit) = 0;
+                suits = floor(cards_played/100);
+                nums = mod(cards_played,100);
+                player.memory_player_suits(suits ~= round.leading_suit,round.leading_suit) = 0;
+                for i = 1:length(cards_played)
+                    player.memory_remaining_cards(nums(i)-1,suits(i)) = 0;
+                end
                 disp(player.memory_player_suits);
+                disp(player.memory_remaining_cards);
                 if  (player.partner)
                     disp('Display partner play')
                     disp(player.memory_player_suits(player.partner,:));
@@ -180,6 +191,9 @@ classdef Player < handle
         function reset_Memory(player)
             player.partner = 0;
             player.memory_player_suits = ones(4,4);
+            for i = 1:4
+                player.memory_remaining_cards(:,i) = (cumsum(ones(1,13))+1)';
+            end
         end
     end
 end

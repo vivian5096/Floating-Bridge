@@ -45,7 +45,7 @@ set(disp_axes,'Xlim',[0 playfield_size(1)],'Ylim',[0 playfield_size(2)],...
 % Initialise players
 % Can choose 'Human' or 'randomAI' or 'Vibot1'
 pl(1) = Player('Human',1,[]);
-pl(2) = Player('Vibot1',2,[]);
+pl(2) = Player('randomAI',2,[]);
 pl(3) = Player('randomAI',3,[]);
 pl(4) = Player('Vibot1',4,[]);
 
