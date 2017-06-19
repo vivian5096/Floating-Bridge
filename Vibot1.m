@@ -75,7 +75,8 @@ classdef Vibot1
                 case 3
                     
                     %play to maximise chance of winning or partner winning
-                    tb=var2; leading_suit=var1;
+                    tb=var2; round=var1;
+                    leading_suit = round.leading_suit;
                     playable_cards = [player.hand.value];
                     suit = floor([player.hand.value]/100);
                     % Step 1: Get the playable_cards
@@ -91,14 +92,81 @@ classdef Vibot1
                         end
                     end
                     card_viability = ones(1,length(playable_cards));
+                    nums = mod(playable_cards,100);
+                    suit = floor(playable_cards/100);
+                    [unique_suit,suit_count] = unique(suit,'stable');
+                    suit_count = diff([suit_count' length(suit)+1]);
+                    high_cards = max(player.memory_remaining_cards);
+                    
+                    % Debug purposes:
+                    disp('Playable cards info: ')
                     disp(playable_cards);
+                    disp('Value:')
+                    disp(nums)
+                    disp('Suit:');
+                    disp(suit);
+                    disp('Suit Count:')
+                    disp(suit_count)
+                    disp('Viability:');
                     disp(card_viability);
+                    
                     % Step 2: Compute viability of the playable cards
+                    %%%General viability
+                    
+                    % Viability of suits of low card count
+                    disp('low card count cards')
+                    low_suit = unique_suit(suit_count == min(suit_count));
+                    disp(low_suit)
+                    for i = low_suit
+                    card_viability = card_viability + ...
+                        (suit == i) /min(suit_count);
+                    end
+                    disp(card_viability);
+                    %%%Leading-specific viability    
+                    if leading_suit == 0
+                        % Viability of high cards
+                        disp('compute high cards')
+                        disp(high_cards)
+                        for i = 1:4
+                            card_viability = card_viability + (suit == i & nums == high_cards(i)) * 1.2; 
+                        end
+                        disp(card_viability);
+                    else
+                    %%%Following-specific viability
+                        disp('Leading high card')
+                        played_cardvalues = [round.cards_played.value];
+                        played_cardsuits = floor(played_cardvalues/100);
+                        trumped = any(played_cardsuits == tb.trump_suit) && leading_suit ~= tb.trump_suit;
+                        %current_high_card = round.cards_played.value(
+                        
+                        if trumped
+                            card_viability = card_viability - (suit~=tb.trump_suit).*nums/7;
+                        end
+                        % Favour highest number of leading suit available in game , when following suit
+                        card_viability = card_viability + (suit == leading_suit & nums == high_cards(leading_suit)) * 1.2;
+                        disp(card_viability);
+                        disp('Trumping card')
+                        % Favour low cards if cannot go higher
+                        card_viability = card_viability + (nums<max(played_cardvalues))./nums;
+                        % Favour trumps, low number, when out of leading suit
+                        max_trump_played = max(played_cardvalues(played_cardsuits == tb.trump_suit));
+                        if isempty(max_trump_played)
+                            max_trump_played=1;
+                        end
+                        disp('max Trump card number:')
+                        disp(max_trump_played);
+                        card_viability = card_viability + (suit==tb.trump_suit & nums>max_trump_played )./nums *2;
+                        disp(card_viability);
+                    end
+                    %%%Partner-specific viability
+                    if player.partner
+                    end
                     
                     % Step 3: Pick the most favourable card, random if more
                     % than one
-                    
-                    action = Vibot1.randomPlay(player,tb,leading_suit);
+                    best_cards = playable_cards(card_viability == max(card_viability));
+                    action = player.hand(best_cards(randi(length(best_cards)))== [player.hand.value]);
+                    %action = Vibot1.randomPlay(player,tb,leading_suit);
                 otherwise
                     disp('State of game is undefined')
             end

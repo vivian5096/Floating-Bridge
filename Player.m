@@ -146,7 +146,7 @@ classdef Player < handle
                 case 'Human'
                     card_played=Human.select_Card(player, round.leading_suit,tb,player_hand_deck);
                 case 'Vibot1'
-                    card_played=Vibot1.getAction(player,3,round.leading_suit,tb);
+                    card_played=Vibot1.getAction(player,3,round,tb);
                 otherwise
                     disp('Player type not valid')
             end 
